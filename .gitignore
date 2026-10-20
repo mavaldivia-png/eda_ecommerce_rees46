@@ -2,3 +2,10 @@
 ~$*
 
 .DS_Store
+
+# Módulos locales de las comparativas. Los notebooks no los necesitan.
+pruebas_algoritmos/test/
+
+# Salidas que cada notebook vuelve a generar.
+pruebas_algoritmos/resultados/
+pruebas_algoritmos/figuras/

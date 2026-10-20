@@ -27,6 +27,10 @@ El dashboard, al final del notebook, tiene seis pestañas: buscar por ID o por t
 
 REES46 trae vistas, carritos y compras con marca, categoría, precio y sesión. El notebook completa, con una huella reproducible (semilla 42), el dispositivo, el medio de pago, el tipo de entrega y la etiqueta de fraude. Esos campos no vienen en el CSV.
 
+## Comparativas
+
+`pruebas_algoritmos/` contiene los notebooks que comparan las alternativas de cada etapa. Se abren y se ejecutan igual que el pipeline. Cada uno trae su código; no dependen de otros archivos.
+
 ## Cómo se ejecuta
 
 La corrida principal es en Google Colab. El mismo notebook también corre en local.
