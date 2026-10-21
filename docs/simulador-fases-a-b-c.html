@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="no-referrer">
+  <title>Motor REES46 — simulador de las fases A, B y C</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --paper: #fffcf8;
+      --ink: #1b2430;
+      --muted: #5d6876;
+      --line: #e2dacd;
+      --accent: #1e4d6b;
+      --accent-soft: #e7f0f6;
+      --blue: #245a86;
+      --amber: #8a5a20;
+      --green: #2c6a4e;
+      --warn-bg: #fbf3e4;
+      --warn-line: #e4c98a;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font: 16px/1.55 "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+    }
+    a { color: var(--accent); }
+    code {
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.88em;
+      background: #efeae1;
+      padding: 0.05em 0.35em;
+      border-radius: 4px;
+    }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    header.top {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(244, 241, 234, 0.94);
+      border-bottom: 1px solid var(--line);
+    }
+    .top-inner { display: flex; gap: 18px; align-items: center; justify-content: space-between; padding: 10px 0; }
+    .brand { font-weight: 650; letter-spacing: -0.02em; }
+    .brand span { display: block; font-weight: 450; color: var(--muted); font-size: 12px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+    nav a { color: var(--ink); text-decoration: none; font-size: 13.5px; }
+    nav a:hover { color: var(--accent); }
+    main { padding: 28px 0 72px; }
+    h1 { font-size: 32px; line-height: 1.15; letter-spacing: -0.03em; margin: 0 0 10px; }
+    h2 { font-size: 22px; letter-spacing: -0.02em; margin: 0 0 8px; }
+    h3 { font-size: 16px; margin: 0; }
+    .lede, .muted { color: var(--muted); }
+    .source { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0; }
+    .stat, .panel, .trunk, .rama, .box {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .stat { padding: 14px 16px; }
+    .stat b { display: block; font-size: 26px; letter-spacing: -0.03em; }
+    .stat span { color: var(--muted); font-size: 13px; }
+    .panel { padding: 16px; margin-top: 14px; }
+    .trunk, .rama {
+      width: 100%;
+      text-align: left;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      padding: 14px 16px;
+    }
+    .trunk.is-on, .rama.is-on { border-color: var(--accent); background: var(--accent-soft); }
+    .rama.b { border-top: 3px solid var(--blue); }
+    .rama.c { border-top: 3px solid var(--amber); }
+    .trunk b, .rama b { display: block; }
+    .trunk span, .rama span { color: var(--muted); font-size: 13.5px; }
+    .fork { display: flex; flex-direction: column; align-items: center; }
+    .fork .stem { width: 1px; height: 16px; background: var(--ink); }
+    .fork .arm { width: 50%; }
+    .fork .arm .bar { height: 1px; background: var(--ink); }
+    .fork .drops { display: flex; justify-content: space-between; }
+    .fork .drops i { display: block; width: 1px; height: 16px; background: var(--ink); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+    button.pill, button.btn {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font: inherit;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+    button.pill.is-on, button.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button:disabled { opacity: 0.45; cursor: default; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+    th { font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); font-weight: 650; }
+    tr.info td { background: #e7f0f6; }
+    tr.toma td { background: #e7f0f6; }
+    .num { text-align: right; }
+    .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+    .chip {
+      width: 128px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper);
+      padding: 8px;
+    }
+    .chip.on { border-color: var(--accent); background: var(--accent-soft); }
+    .chip.dim { opacity: 0.45; }
+    .chip.hist { border-top: 3px solid var(--blue); }
+    .chip.stream { border-top: 3px solid var(--amber); }
+    .chip b { display: block; font-size: 13px; }
+    .chip span, .chip small { display: block; color: var(--muted); font-size: 12px; }
+    .labeled { margin-top: 12px; }
+    .relato, .callout {
+      margin-top: 12px;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .relato { background: #efeae1; }
+    .relato.empate { background: var(--accent-soft); }
+    .callout { border: 1px solid var(--line); border-left: 4px solid var(--accent); background: var(--accent-soft); }
+    .callout strong { display: block; margin-bottom: 4px; }
+    .bits, .cms-row, .vector, .letras, .heap-level { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+    .bit, .cell {
+      min-width: 28px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: var(--paper);
+      font-size: 11px;
+      line-height: 1.2;
+      padding: 3px 4px;
+    }
+    .bit.on, .cell.on, .letra.nueva { border-color: var(--accent); background: var(--accent-soft); }
+    .cell.hit { background: #efeae1; }
+    .letra { min-width: 18px; text-align: center; border-bottom: 2px solid var(--line); padding: 2px; font-size: 13px; }
+    .letra.ya { color: var(--muted); }
+    .hojas, .heap { display: grid; gap: 10px; }
+    .hoja { border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+    .hoja.on { border-color: var(--accent); }
+    .heap-level { justify-content: center; gap: 18px; }
+    .pair { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    #escenario { scroll-margin-top: 72px; }
+    footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; margin-top: 36px; }
+    @media (max-width: 860px) {
+      .stats, .grid-2 { grid-template-columns: 1fr; }
+      h1 { font-size: 26px; }
+      .top-inner { flex-direction: column; align-items: flex-start; }
+      .fork .arm { width: 80%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div class="brand">Motor REES46<span>Simulador de las fases A, B y C</span></div>
+      <nav>
+        <a href="como-funciona-el-pipeline.html">Pipeline</a>
+        <a href="#mapa">Mapa</a>
+        <a href="#corte">Corte</a>
+        <a href="#escenario">Recorrido</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <h1>La fase A abre dos ramas</h1>
+    <p class="lede">
+      Lectura, limpieza, etiqueta y corte recorren el archivo entero. Ese tramo es común.
+      En el corte el lote se parte: el 60&nbsp;% abre la fase B y el 40&nbsp;% abre la fase C.
+    </p>
+    <p class="source">
+      Fuente: <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>. Semilla 42.
+      En la miniatura el corte cae en 4 y 4. En quick, en 60.000 y 40.000.
+    </p>
+    <div class="stats">
+      <div class="stat"><b>4</b><span>Pasos comunes, fase A</span></div>
+      <div class="stat"><b>60 %</b><span>Rama B, histórico</span></div>
+      <div class="stat"><b>40 %</b><span>Rama C, stream</span></div>
+    </div>
+
+    <section id="mapa">
+      <h2>Origen y dos ramas</h2>
+      <button type="button" class="trunk is-on" id="btn-a" data-rama="A">
+        <b>Fase A · origen</b>
+        <span>1 Lectura, luego 2 Limpieza, luego 3 Etiqueta, luego 4 Corte. Tramo común, antes de partir el lote.</span>
+      </button>
+      <div class="fork" aria-hidden="true">
+        <div class="stem"></div>
+        <div class="arm">
+          <div class="bar"></div>
+          <div class="drops"><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <button type="button" class="rama b" id="btn-b" data-rama="B">
+          <b>Fase B · 60 %</b>
+          <span>Histórico: 08:05 Vista, 08:20 Fraude, 08:50 Carrito, 09:40 Express. Arma almacén, B+Tree, HNSW, fraude, co-compra y trie. La miniatura suma 08:12 y 08:35 para dibujar la arista.</span>
+        </button>
+        <button type="button" class="rama c" id="btn-c" data-rama="C">
+          <b>Fase C · 40 %</b>
+          <span>Stream: 09:40 Estándar, 10:55 Carrito, 11:20 Vista, 12:10 Programada. Cola, heap, lookup y una sola rama por evento. Consulta lo que la fase B dejó escrito.</span>
+        </button>
+      </div>
+      <p class="source" id="rama-actual">Abierto el tramo común. El corte, al final, reparte el lote.</p>
+    </section>
+
+    <section id="corte">
+      <h2>El mismo corte, dos destinos</h2>
+      <p class="lede">
+        Ocho filas de la miniatura, ya ordenadas por hora. La misma hora 09:40 queda en los dos lados:
+        Express entrena y Estándar abre la cola. Las separa el índice de archivo, que viajó dentro de la clave del merge sort.
+      </p>
+      <div class="panel" style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th>Posición</th><th>Hora</th><th>Etiqueta</th><th class="num">Prioridad</th><th>Rama</th></tr>
+          </thead>
+          <tbody>
+            <tr class="info"><td class="num">0</td><td>08:05</td><td>Vista</td><td class="num">6</td><td>B · histórico</td></tr>
+            <tr class="info"><td class="num">1</td><td>08:20</td><td>Fraude</td><td class="num">1</td><td>B · histórico</td></tr>
+            <tr class="info"><td class="num">2</td><td>08:50</td><td>Carrito</td><td class="num">5</td><td>B · histórico</td></tr>
+            <tr class="info"><td class="num">3</td><td>09:40</td><td>Express</td><td class="num">2</td><td>B · histórico</td></tr>
+            <tr><td class="num">4</td><td>09:40</td><td>Estándar</td><td class="num">3</td><td>C · stream</td></tr>
+            <tr><td class="num">5</td><td>10:55</td><td>Carrito</td><td class="num">5</td><td>C · stream</td></tr>
+            <tr><td class="num">6</td><td>11:20</td><td>Vista</td><td class="num">6</td><td>C · stream</td></tr>
+            <tr><td class="num">7</td><td>12:10</td><td>Programada</td><td class="num">4</td><td>C · stream</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="source">La rama C consulta el almacén, el índice, el Bloom y el trie que la rama B dejó escritos.</p>
+    </section>
+
+    <section id="escenario">
+      <h2 id="titulo-fase">Fase A, paso a paso</h2>
+      <p class="lede" id="lede-fase"></p>
+      <div class="pills" id="pasos"></div>
+      <div class="pills" id="subs"></div>
+      <div class="panel" id="panel"></div>
+      <div class="pills" id="atajos"></div>
+    </section>
+    <footer>
+      Miniatura del notebook v2. Quick lee 100.000 filas; aquí el lote visible son 12 filas crudas y 8 después de limpiar.
+      La página no llama a la red ni guarda datos en el navegador.
+    </footer>
+  </main>
+  <noscript>
+    <p class="wrap">Este recorrido se mueve con el script de la propia página. No carga bibliotecas externas.</p>
+  </noscript>
+  <script>
+"use strict";
+
+var EVENTOS = [
+  { indice: 0, hora: "11:20", minutos: 680, tipo: "vista", producto: 510081, usuario: 17, sesion: "sA", bucket: 0, mod125: 65, prioridad: 6, etiqueta: "Vista" },
+  { indice: 1, hora: "09:40", minutos: 580, tipo: "compra", producto: 100000, usuario: 12, sesion: "sB", bucket: 0, mod125: 15, prioridad: 2, etiqueta: "Express" },
+  { indice: 2, hora: "10:55", minutos: 655, tipo: "carrito", producto: 480002, usuario: 21, sesion: "sC", bucket: 2, mod125: 87, prioridad: 5, etiqueta: "Carrito" },
+  { indice: 3, hora: "08:05", minutos: 485, tipo: "vista", producto: 180220, usuario: 9, sesion: "sD", bucket: 4, mod125: 124, prioridad: 6, etiqueta: "Vista" },
+  { indice: 4, hora: "12:10", minutos: 730, tipo: "compra", producto: 100000, usuario: 14, sesion: "sE", bucket: 4, mod125: 79, prioridad: 4, etiqueta: "Programada" },
+  { indice: 5, hora: "08:50", minutos: 530, tipo: "carrito", producto: 390044, usuario: 33, sesion: "sF", bucket: 3, mod125: 103, prioridad: 5, etiqueta: "Carrito" },
+  { indice: 6, hora: "09:40", minutos: 580, tipo: "compra", producto: 100000, usuario: 13, sesion: "sG", bucket: 2, mod125: 7, prioridad: 3, etiqueta: "Estándar" },
+  { indice: 7, hora: "08:20", minutos: 500, tipo: "compra", producto: 100055, usuario: 11, sesion: "sH", bucket: 0, mod125: 0, prioridad: 1, etiqueta: "Fraude" }
+];
+
+var CRUDAS = [
+  { hora: "11:20", tipo: "vista", producto: "510081", indice: 0, suerte: "queda", pie: "u17 · 510081", relato: "Clave nueva: (11:20, vista, 510081, usuario 17, sA). Se queda y pasa a ser la fila 0." },
+  { hora: "09:40", tipo: "compra", producto: "100000", indice: 1, suerte: "queda", pie: "u12 · 100000", relato: "Compra de las 09:40, usuario 12, producto 100000, sesión sB. Se queda. Fila 1." },
+  { hora: "—", tipo: "vacía", producto: "—", indice: null, suerte: "vacio", pie: "sin sesión", relato: "Falta user_session. dropna la elimina. Sin sesión no hay grafo ni prefijo de productos. No ocupa índice." },
+  { hora: "10:55", tipo: "carrito", producto: "480002", indice: 2, suerte: "queda", pie: "u21 · 480002", relato: "Carrito distinto. Se queda. Fila 2." },
+  { hora: "09:40", tipo: "compra", producto: "100000", indice: null, suerte: "duplicado", pie: "repite fila 1", relato: "La clave (09:40, compra, 100000, usuario 12, sB) ya está en la tabla hash, guardada con la fila 1. drop_duplicates la descarta." },
+  { hora: "08:05", tipo: "vista", producto: "180220", indice: 3, suerte: "queda", pie: "u9 · 180220", relato: "Vista de las 08:05. Es la más temprana del día y aun así va a la mitad del archivo. Por eso el corte no puede hacerse antes de ordenar. Fila 3." },
+  { hora: "12:10", tipo: "compra", producto: "100000", indice: 4, suerte: "queda", pie: "u14 · 100000", relato: "Compra de las 12:10. Mismo producto 100000 que otras filas, pero otro usuario y otra sesión: no es duplicado. Fila 4." },
+  { hora: "—", tipo: "vacía", producto: "—", indice: null, suerte: "vacio", pie: "sin precio", relato: "Falta price. El almacén y el B+Tree de la fase B necesitan precio. dropna la saca." },
+  { hora: "08:50", tipo: "carrito", producto: "390044", indice: 5, suerte: "queda", pie: "u33 · 390044", relato: "Carrito de las 08:50. Se queda. Fila 5." },
+  { hora: "09:40", tipo: "compra", producto: "100000", indice: 6, suerte: "queda", pie: "u13 · 100000", relato: "Otra compra a las 09:40. Usuario 13 y sesión sG: la hora sola no duplica. Se queda, fila 6. En el merge empatará con la fila 1 y perderá, porque 6 es mayor que 1." },
+  { hora: "08:20", tipo: "compra", producto: "100055", indice: 7, suerte: "queda", pie: "u11 · 100055", relato: "Compra de las 08:20. Se queda, fila 7. Todavía no tiene prioridad: esa etiqueta se escribe cuando el lote ya esté ordenado." },
+  { hora: "08:05", tipo: "vista", producto: "180220", indice: null, suerte: "duplicado", pie: "repite la vista", relato: "La misma clave de la vista de las 08:05 ya está en la tabla hash. La encuentra sin mirar cuántas filas hay en medio. El lote cierra con 8 filas." }
+];
+
+var LECTURA = [
+  "El CSV sigue en disco. leer_eventos todavía no arma bloques. En esta miniatura el tope es 12 filas y el bloque es de 4. En el notebook el bloque es min(250.000, tope del modo) y quick se detiene en 100.000.",
+  "Primer bloque: 4 filas, en el orden del archivo. Entran la vacía y todo lo demás. Aquí no se ordena ni se limpia.",
+  "Segundo bloque. Ya hay 8 filas concatenadas. El duplicado de las 09:40 viaja en este bloque: la limpieza es el paso siguiente.",
+  "Tercer bloque. restante llega a 0 y el lector para. pd.concat junta los tres bloques. Siguen 12 filas, desordenadas."
+];
+
+var HISTORICO = [
+  { hora: "08:05", tipo: "vista", producto: 180220, usuario: 9, sesion: "sD", precio: 89, categoria: "shoes", marca: "nike", etiqueta: "Vista", delCorte: true, precioNorm: "0,82", catSlot: 3, marcaSlot: 12 },
+  { hora: "08:12", tipo: "vista", producto: 180330, usuario: 9, sesion: "sD", precio: 55, categoria: "shoes", marca: "adidas", etiqueta: "Vista", delCorte: false, precioNorm: "0,73", catSlot: 3, marcaSlot: 11 },
+  { hora: "08:20", tipo: "compra", producto: 100055, usuario: 11, sesion: "sH", precio: 240, categoria: "phone", marca: "samsung", etiqueta: "Fraude", delCorte: true, precioNorm: "1,00", catSlot: 6, marcaSlot: 13 },
+  { hora: "08:35", tipo: "compra", producto: 100078, usuario: 11, sesion: "sH", precio: 30, categoria: "case", marca: "samsung", etiqueta: "Programada", delCorte: false, precioNorm: "0,63", catSlot: 8, marcaSlot: 13 },
+  { hora: "08:50", tipo: "carrito", producto: 390044, usuario: 33, sesion: "sF", precio: 45, categoria: "shoes", marca: "adidas", etiqueta: "Carrito", delCorte: true, precioNorm: "0,70", catSlot: 3, marcaSlot: 11 },
+  { hora: "09:40", tipo: "compra", producto: 100000, usuario: 12, sesion: "sB", precio: 120, categoria: "phone", marca: "apple", etiqueta: "Express", delCorte: true, precioNorm: "0,87", catSlot: 6, marcaSlot: 12 }
+];
+
+var RELATOS_ALMACEN = [
+  "Seis eventos, en el orden del corte. actualizar escribe el catálogo, la matriz y el LRU. El precio nuevo también entra al B+Tree.",
+  "Vista 180220, usuario 9, sesión sD. El producto no está en el diccionario: nace la ficha shoes, nike, precio 89. La respuesta es HASH.",
+  "Vista 180330, la misma sesión sD, otro producto. Nueva ficha shoes, adidas, precio 55. El LRU deja 180330 al final.",
+  "Compra Fraude 100055, usuario 11, sesión sH. Nueva ficha phone, samsung, precio 240. La caché llega a 3, el tope de esta miniatura. En el notebook el tope es 256.",
+  "Compra 100078, usuario 11, misma sesión sH. Al guardar, el LRU pasa de 3 y suelta la más antigua: 180220.",
+  "Carrito 390044, usuario 33, sesión sF. Sale 180330. Quedan 100055, 100078 y 390044.",
+  "Compra Express 100000, usuario 12, sesión sB. Sale 100055. La caché cierra con 100078, 390044 y 100000. Cada consulta de este histórico respondió HASH."
+];
+
+var FRAMES_ARBOL = [
+  { relato: "precios empieza como una hoja vacía. La clave es el precio y el valor es el product_id. El orden de la miniatura es 3: la hoja se divide al llegar a 4 claves. El notebook usa orden 32.", separador: null, hojas: [[]], precioActivo: null, hojaActiva: 0 },
+  { relato: "89, el producto 180220. Una sola clave. La hoja la acepta.", separador: null, hojas: [[{ precio: 89, producto: 180220 }]], precioActivo: 89, hojaActiva: 0 },
+  { relato: "55 entra a la izquierda de 89. La hoja queda ordenada: 55 y después 89.", separador: null, hojas: [[{ precio: 55, producto: 180330 }, { precio: 89, producto: 180220 }]], precioActivo: 55, hojaActiva: 0 },
+  { relato: "240 entra al final. La hoja tiene 3 claves, el máximo de esta miniatura, y todavía no se divide.", separador: null, hojas: [[{ precio: 55, producto: 180330 }, { precio: 89, producto: 180220 }, { precio: 240, producto: 100055 }]], precioActivo: 240, hojaActiva: 0 },
+  { relato: "30 empuja la hoja a 4 claves. Se parte por la mitad. Sube 89, la primera clave de la derecha.", separador: 89, hojas: [[{ precio: 30, producto: 100078 }, { precio: 55, producto: 180330 }], [{ precio: 89, producto: 180220 }, { precio: 240, producto: 100055 }]], precioActivo: 30, hojaActiva: 0 },
+  { relato: "45 es menor que el separador 89, así que baja a la hoja izquierda. Queda 30, 45, 55.", separador: 89, hojas: [[{ precio: 30, producto: 100078 }, { precio: 45, producto: 390044 }, { precio: 55, producto: 180330 }], [{ precio: 89, producto: 180220 }, { precio: 240, producto: 100055 }]], precioActivo: 45, hojaActiva: 0 },
+  { relato: "120 es mayor que 89 y baja a la hoja derecha: 89, 120, 240. El enlace entre hojas es el que después recorre buscar_rango.", separador: 89, hojas: [[{ precio: 30, producto: 100078 }, { precio: 45, producto: 390044 }, { precio: 55, producto: 180330 }], [{ precio: 89, producto: 180220 }, { precio: 120, producto: 100000 }, { precio: 240, producto: 100055 }]], precioActivo: 120, hojaActiva: 1 }
+];
+
+var RELATOS_SESION = [
+  "construir_grafo_sesion agrupa por user_session. Dentro de la sesión, cada par de productos distintos suma 1 a una arista. Una sesión con un solo producto no deja nodo.",
+  "sD trae 180220 y después 180330. El par suma la arista, peso 1.",
+  "sH trae 100055 y después 100078. Otra arista, peso 1. Esta función mira la sesión, sea vista, carrito o compra.",
+  "sF trae solo 390044. Un producto no produce pares.",
+  "sB trae solo 100000. El grafo de sesión cierra con cuatro nodos y dos aristas."
+];
+
+var RELATOS_VECTOR = [
+  "construir_indice_productos pide al menos 2 usuarios por producto. Aquí cada producto lo tocó un usuario, así que entra el catálogo completo.",
+  "180220. Casilla 0: 0,82. Casilla 1: popularidad 1,00. shoes enciende la 3. nike enciende la 12.",
+  "180330, shoes adidas. Comparte la casilla 3 y enciende la 11. El más cercano en L2, entre los que ya entraron, es 180220, distancia 1,417.",
+  "100055, phone samsung, precio 240. La casilla 0 vale 1,00. Categoría en la 6, marca en la 13.",
+  "100078, case samsung. Marca en la 13, la misma que 100055. Su vecino más cercano entre los anteriores es 100055, distancia 1,463.",
+  "390044, shoes adidas, el mismo texto que 180330. La distancia con 180330 es 0,036, casi solo el precio.",
+  "100000, phone apple. El más cercano de los que ya entraron es 180220, distancia 1,415."
+];
+
+var VECINOS = [
+  ["180330", "390044", "0,036", "shoes adidas los dos"],
+  ["390044", "180330", "0,036", "shoes adidas los dos"],
+  ["180220", "100000", "1,415", "marca en la misma casilla"],
+  ["100000", "180220", "1,415", "marca en la misma casilla"],
+  ["100055", "100000", "1,420", "categoría phone en la casilla 6"],
+  ["100078", "100055", "1,463", "marca samsung en la casilla 13"]
+];
+
+var POS_CMS_11 = [11, 4, 4, 0, 15];
+var POS_CMS_12 = [15, 11, 14, 11, 9];
+var BITS_DEV = [8, 14, 12];
+var BITS_PAY = [12, 3, 0];
+var RELATOS_FRAUDE_B = [
+  "construir_fraude recorre el histórico y se detiene en las compras. Hay tres: 08:20, 08:35 y 09:40.",
+  "Compra 08:20, usuario 11, fraude confirmado. El Count-Min suma 1 en la clave 11|08:00. El conjunto exacto recibe dev-11-0 y pay-11-1.",
+  "Compra 08:35, el mismo usuario y la misma hora de reloj. La clave 11|08:00 queda en 2. El dispositivo ya estaba. El pago nuevo, pay-11-2, se queda fuera del conjunto.",
+  "Compra 09:40, usuario 12, Express. Nueva clave 12|09:00, estimación 1. dev-12-0 y pay-12-2 se quedan fuera del conjunto.",
+  "El Bloom se arma al final. dev-11-0 enciende los bits 8, 14 y 12. pay-11-1 enciende 12, 3 y 0. El bit 12 lo encienden los dos."
+];
+
+var RELATOS_GRAFO = [
+  "construir_cocompra se queda con las compras del histórico. Une el producto nuevo con los que ya se compraron antes en esa sesión.",
+  "08:20, compra 100055 en sH. Nace el nodo. Todavía no hay una compra anterior en sH.",
+  "08:35, compra 100078 en la misma sH. Nace el nodo y la arista, peso 1.",
+  "09:40, compra 100000 en sB. Nace el nodo y se queda suelto. El grafo cierra con 3 nodos y 1 arista."
+];
+
+var FRASES = [
+  [["shoes nike", 180220], ["nike shoes", 180220]],
+  [["shoes adidas", 180330], ["adidas shoes", 180330]],
+  [["phone samsung", 100055], ["samsung phone", 100055]],
+  [["case samsung", 100078], ["samsung case", 100078]],
+  [["shoes adidas", 390044], ["adidas shoes", 390044]],
+  [["phone apple", 100000], ["apple phone", 100000]]
+];
+
+var RELATOS_TRIE = [
+  "El trie se llena cuando el catálogo ya está cerrado. Cada producto deja dos textos: categoría marca, y marca categoría.",
+  "180220 escribe shoes nike y nike shoes. Las dos ramas nacen desde la raíz.",
+  "180330 escribe shoes adidas. Las letras shoes ya están por nike. Desde la a se abre adidas.",
+  "100055 abre phone samsung y samsung phone.",
+  "100078 abre case samsung. En samsung, case es hermana de phone y va antes, porque la c va antes que la p.",
+  "390044 vuelve a escribir shoes adidas y adidas shoes. El product_id se agrega al final, junto a 180330.",
+  "100000 abre phone apple. completar(\"sho\") devuelve 180220, 180330 y 390044. shoes nike es la palabra más corta, así que su terminal llega primero."
+];
+
+var STREAM = [
+  { orden: 0, hora: "09:40", tipo: "compra", producto: 100000, usuario: 13, sesion: "sG", prioridad: 3, etiqueta: "Estándar", pago: "pay-13-1", categoria: "phone", marca: "apple", precio: 120 },
+  { orden: 1, hora: "10:55", tipo: "carrito", producto: 480002, usuario: 21, sesion: "sC", prioridad: 5, etiqueta: "Carrito", pago: "pay-21-2", categoria: "audio", marca: "sony", precio: 70 },
+  { orden: 2, hora: "11:20", tipo: "vista", producto: 510081, usuario: 17, sesion: "sA", prioridad: 6, etiqueta: "Vista", pago: "pay-17-0", categoria: "laptop", marca: "lenovo", precio: 150 },
+  { orden: 3, hora: "12:10", tipo: "compra", producto: 100000, usuario: 14, sesion: "sE", prioridad: 4, etiqueta: "Programada", pago: "pay-14-1", categoria: "phone", marca: "apple", precio: 120 }
+];
+
+var ORDEN_HEAP = [0, 3, 1, 2];
+var CATALOGO_INICIAL = [
+  { producto: 180220, categoria: "shoes", marca: "nike", precio: 89, popularidad: 1 },
+  { producto: 180330, categoria: "shoes", marca: "adidas", precio: 55, popularidad: 1 },
+  { producto: 100055, categoria: "phone", marca: "samsung", precio: 240, popularidad: 1 },
+  { producto: 100078, categoria: "case", marca: "samsung", precio: 30, popularidad: 1 },
+  { producto: 390044, categoria: "shoes", marca: "adidas", precio: 45, popularidad: 1 },
+  { producto: 100000, categoria: "phone", marca: "apple", precio: 120, popularidad: 1 }
+];
+
+var CMS = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
+  [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+  [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+  [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2]
+];
+
+var RELATOS_FIFO = [
+  "Cuatro eventos, en el orden del corte. deque empieza vacío. El primero que entre queda en el frente y recibe el orden 0.",
+  "Entra Estándar, 09:40, compra del producto 100000. Es el frente.",
+  "Entra Carrito, 10:55, por detrás. El frente sigue siendo Estándar.",
+  "Entra Vista, 11:20, por detrás.",
+  "Entra Programada, 12:10. La cola tiene a los cuatro. A la derecha está el primero que entró.",
+  "enumerate recorre desde el frente. Estándar recibe orden 0, Carrito 1, Vista 2 y Programada 3. cola.clear() vacía el deque."
+];
+
+var RELATOS_HEAP = [
+  "El heap está vacío. Cada heappush guarda (prioridad, orden, índice). Sale siempre la clave menor.",
+  "heappush de Estándar, clave (3, 0). Ocupa la raíz.",
+  "Carrito entra con (5, 1). 5 es mayor que 3 y se queda de hijo izquierdo.",
+  "Vista entra con (6, 2) y se queda de hijo derecho.",
+  "Programada entra con (4, 3). Sube por encima de Carrito y se detiene bajo Estándar. El arreglo queda (3, 0), (4, 3), (6, 2), (5, 1).",
+  "heappop saca Estándar. Carrito pasa a la raíz y baja. Programada, menor, sube a la raíz.",
+  "heappop saca Programada. Carrito sube a la raíz por encima de Vista.",
+  "heappop saca Carrito. Queda Vista, sola, en la raíz.",
+  "heappop saca Vista. El heap quedó vacío. Las compras que siguieron esperan al paso de co-compra, y allá se recorren por hora."
+];
+
+var HEAP_ARREGLOS = [[], [0], [0, 1], [0, 1, 2], [0, 3, 2, 1], [3, 1, 2], [1, 2], [2], []];
+var HEAP_SALIDAS = [[], [], [], [], [], [0], [0, 3], [0, 3, 1], [0, 3, 1, 2]];
+var HEAP_ACTIVOS = [null, 0, 1, 2, 3, 3, 1, 2, null];
+
+var RELATOS_LOOKUP = [
+  "El LRU cerró la fase B con tres fichas: 100078, 390044 y 100000. actualizar corre en el orden del heappop.",
+  "Estándar pide 100000. La ficha ya está, la popularidad pasa de 1 a 2. consultar responde CACHE.",
+  "Programada pide el mismo 100000. Otra vez CACHE. La popularidad queda en 3. El índice HNSW no se reconstruye.",
+  "Carrito trae 480002. Nace la ficha audio, sony, precio 70. HASH, y el LRU suelta 100078.",
+  "Vista trae 510081. Nueva ficha laptop, lenovo, precio 150. HASH, y sale 390044. La caché cierra con 100000, 480002 y 510081."
+];
+
+var RELATOS_ORQ = [
+  "El orquestador mira event_type después del lookup. Vista y carrito abren recomendación. Compra abre fraude. Un evento toma una sola rama.",
+  "Estándar es purchase. Abre Fraude.",
+  "Programada también es purchase. Otra vez Fraude.",
+  "Carrito es cart. Abre Recomendación.",
+  "Vista es view. Abre Recomendación."
+];
+
+var TOP_COLA = ["180220", "180330", "100055", "100078", "390044"];
+var RELATOS_COLA = [
+  "hibrido arma un top 5: 1 candidato del índice y 4 del grafo de sesión. Si falta, rellena con los populares.",
+  "Carrito, producto 480002, sesión sC. No está en el índice ni en el grafo. La cuota de 1 se lleva 180220. El relleno completa el top con los populares.",
+  "Vista, producto 510081, sesión sA. El mismo caso: un producto nuevo. El top 5 se repite."
+];
+var RELATOS_CUOTA = [
+  "La misma función, con 180330, que el índice sí conoce. El más cercano es 390044, distancia 0,036. El grafo de sD devuelve 180220.",
+  "La cuota de 1 toma 390044. La cuota de 4 toma 180220, el único vecino de sesión.",
+  "El relleno sigue por la lista del vector: entran 100078, 100000 y 100055."
+];
+var TOP_CUOTA = [
+  ["390044", "HNSW · 1"],
+  ["180220", "grafo · de 4"],
+  ["100078", "relleno"],
+  ["100000", "relleno"],
+  ["100055", "relleno"]
+];
+
+var FRAUDE_BITS = [
+  { device: [7, 0, 13], pago: [8, 0, 8], cms: [1, 4, 0, 3, 13], vals: [0, 2, 0, 0, 0] },
+  { device: [0, 7, 6], pago: [0, 3, 1], cms: [7, 2, 5, 0, 13], vals: [0, 0, 0, 2, 0] }
+];
+var RELATOS_FRAUDE_C = [
+  "decidir_fraude consulta lo que construir_fraude dejó. El conjunto exacto tiene dev-11-0 y pay-11-1. Esta consulta no le suma al Count-Min. El umbral de intensidad es 8.",
+  "Estándar, usuario 13. El dispositivo queda fuera. El pago enciende bits que ya estaban en 1, así que el Bloom dice que está, y el conjunto exacto no lo tiene. La decisión es revisar.",
+  "Programada, usuario 14. En dispositivo y pago falta un bit. El Count-Min da 0. La decisión es permitir."
+];
+var RELATOS_COCO = [
+  "El grafo del histórico tiene 3 nodos y 1 arista. unir_compra corre sobre las compras cuya decisión fue permitir o revisar, ordenadas por hora.",
+  "09:40, Estándar, sesión sG. La decisión fue revisar, y revisar sigue. sG no tiene una compra anterior. nuevas queda en 0.",
+  "12:10, Programada, sesión sE. La decisión fue permitir. sE tampoco tiene compras anteriores. El grafo cierra como empezó: 3 nodos y 1 arista."
+];
+
+var REGLAS = [
+  ["Compra y h % 125 = 0", "1 · Fraude"],
+  ["Compra y h % 5 = 0", "2 · Express"],
+  ["Compra y h % 5 es 1, 2 o 3", "3 · Estándar"],
+  ["Compra y h % 5 = 4", "4 · Programada"],
+  ["Carrito", "5 · Carrito"],
+  ["Vista, o cualquier otro tipo", "6 · Vista"]
+];
+
+var FASES = {
+  A: {
+    titulo: "Fase A, paso a paso",
+    lede: "Cuatro pasos sobre el archivo entero, antes de armar modelos y antes de la cola.",
+    pasos: [
+      { id: "lectura", orden: "1", nombre: "Lectura" },
+      { id: "limpieza", orden: "2", nombre: "Limpieza" },
+      { id: "etiqueta", orden: "3", nombre: "Etiqueta" },
+      { id: "corte", orden: "4", nombre: "Corte" }
+    ]
+  },
+  B: {
+    titulo: "Fase B, paso a paso",
+    lede: "Seis pasos sobre el histórico. El 60 % arma las estructuras y se queda en ellas.",
+    pasos: [
+      { id: "almacen", orden: "5", nombre: "Almacén" },
+      { id: "arbol", orden: "6", nombre: "B+Tree" },
+      { id: "indice", orden: "7", nombre: "HNSW" },
+      { id: "fraudeB", orden: "8", nombre: "Fraude" },
+      { id: "grafo", orden: "9", nombre: "Co-compra" },
+      { id: "trie", orden: "10", nombre: "Trie" }
+    ]
+  },
+  C: {
+    titulo: "Fase C, paso a paso",
+    lede: "El 40 % entra a la cola. Cada evento consulta lo que la fase B dejó armado. 15a y 15b son dos caminos: el evento toma uno.",
+    pasos: [
+      { id: "fifo", orden: "11", nombre: "Cola" },
+      { id: "heap", orden: "12", nombre: "Heap" },
+      { id: "lookup", orden: "13", nombre: "Lookup" },
+      { id: "orquestador", orden: "14", nombre: "Orquestador" },
+      { id: "reco", orden: "15a", nombre: "Recomendación" },
+      { id: "fraudeC", orden: "15b", nombre: "Fraude" },
+      { id: "coco", orden: "16", nombre: "Co-compra" },
+      { id: "servicio", orden: "21", nombre: "Servicio" }
+    ]
+  }
+};
+
+var SUBS = {
+  limpieza: [
+    { id: "dedup", nombre: "Deduplicar" },
+    { id: "merge", nombre: "Merge sort" },
+    { id: "kway", nombre: "Mezcla de k vías" }
+  ],
+  indice: [
+    { id: "sesion", nombre: "Grafo de sesión" },
+    { id: "vector", nombre: "Vector" },
+    { id: "vecinos", nombre: "HNSW" }
+  ],
+  reco: [
+    { id: "cola", nombre: "Productos nuevos" },
+    { id: "cuota", nombre: "Cuota 1 + 4" }
+  ]
+};
+
+var FICHAS = {
+  lectura: ["Por qué la lectura va antes del corte", "REES46 llega como CSV. Esas filas siguen en el orden del archivo. Una compra de la tarde puede aparecer antes que una vista de la mañana. El corte, aplicado aquí, mezclaría el reloj.", "leer_eventos"],
+  limpieza: ["Por qué se ordena antes de partir", "El 60 % y el 40 % son posiciones en el tiempo. dropna quita vacíos. drop_duplicates guarda la clave en una tabla hash. El orden lo produce merge sort, con clave (hora, índice). mezcla_k junta bloques ya ordenados, y en quick no se llama porque hay un solo bloque de 100.000.", "preparar_eventos, merge_sort y, solo en full, mezcla_k"],
+  etiqueta: ["Por qué el heap necesita un número", "Cada fila recibe un entero del 1 al 6. El 1 sale primero del min-heap de la fase C. Si la compra tiene h % 125 = 0, la prioridad queda en 1, Fraude, antes de mirar el bucket.", "preparar_eventos, semilla 42, FRAUDE_MODULO = 125"],
+  corte: ["Qué se lleva cada rama", "train alimenta la fase B. Desde train hasta el final se arma la cola de la fase C. En la miniatura, Express entrena y Estándar abre la cola, con la misma hora.", "cortes_temporales(n)"],
+  almacen: ["Por qué el histórico llena tres estructuras a la vez", "La ficha vive en un diccionario por product_id. La matriz dispersa anota usuario y producto. El LRU de esta miniatura cabe 3; en el notebook, 256.", "actualizar_almacen, range(corte_train)"],
+  arbol: ["Por qué el precio vive en un B+Tree", "buscar_rango baja por los separadores hasta una hoja y camina el enlace siguiente. En esta miniatura el orden es 3 para ver la división. El notebook usa orden 32.", "ArbolBPlus.insertar"],
+  indice: ["Por qué hay un grafo de sesión y un índice de 14 dimensiones", "La recomendación arma un top 5: 1 candidato del índice y 4 del grafo de sesión. El vector enciende una casilla de categoría y una de marca.", "construir_grafo_sesion y construir_indice_productos"],
+  fraudeB: ["Por qué el filtro se arma antes de ver el stream", "El Count-Min suma usuario|hora. El conjunto exacto guarda dispositivo y pago de las compras confirmadas. El Bloom agrega ese conjunto. Bloquear, en la fase C, pide la confirmación del conjunto.", "construir_fraude(df, corte_train)"],
+  grafo: ["Por qué la co-compra es otro grafo", "Este grafo junta compras y respeta el orden dentro de la sesión. El de sesión junta cualquier evento.", "construir_cocompra"],
+  trie: ["Por qué el autocompletado se llena con el catálogo", "Buscar por texto no usa el hash. El trie guarda categoría marca y marca categoría. completar hace un BFS y devuelve hasta 5.", "Trie.insertar"],
+  fifo: ["Por qué la cola existe si el heap la vacía enseguida", "El 40 % llega ordenado por hora. La cola conserva ese orden de llegada y se lo entrega al heap como segunda clave.", "deque(range(corte_train, n))"],
+  heap: ["Por qué el min-heap deshace el orden de la cola", "La etiqueta 1 a 6 se escribió en la fase A. Programada tiene prioridad 4 y llega última a la cola, así que se atiende antes que Carrito y que Vista.", "heapq, clave (prioridad, orden, índice)"],
+  lookup: ["Por qué cada salida del heap vuelve al almacén", "actualizar sube la popularidad y, si el producto es nuevo, inserta el precio. consultar distingue CACHE de HASH. El HNSW no se entera: se construyó antes de la cola.", "Almacen.actualizar y Almacen.consultar"],
+  orquestador: ["Por qué un evento abre una sola rama", "Vista y carrito piden recomendación. La compra pide fraude. La co-compra es continuación de la compra, y corre después.", "el if de event_type dentro del while heap"],
+  reco: ["Por qué el top 5 mezcla índice y grafo", "480002 y 510081 caen en los populares. 180330, que el paso 7 sí indexó, muestra la cuota: 390044 por el vector y 180220 por la arista de sD.", "hibrido(vistos, grafo_sesion, modelo)"],
+  fraudeC: ["Por qué revisar y bloquear son decisiones distintas", "El Bloom puede decir que un pago está cuando los bits coinciden con otro miembro. Sin confirmación del conjunto exacto, la decisión es revisar. Sin motivo, permitir.", "decidir_fraude, umbral 8"],
+  coco: ["Por qué estas dos compras no suman arista", "sG y sE nacen con esta fila. 100000 ya era nodo por la Express del histórico, en otra sesión, y una sesión distinta no crea la arista.", "unir_compra"],
+  servicio: ["Qué muestra el tablero", "completar recorre el trie y devuelve hasta 5. Buscar por id usa el hash. 480002 y 510081 se pueden pedir por id y todavía no tienen texto en el autocompletado.", "Trie.completar y el panel"]
+};
+
+function comparar(a, b) {
+  if (a.minutos !== b.minutos) return a.minutos - b.minutos;
+  return a.indice - b.indice;
+}
+
+function mergeSort(items) {
+  if (items.length <= 1) return items.slice();
+  var tamano = 1;
+  var ordenados = items.slice();
+  while (tamano < ordenados.length) {
+    var siguiente = [];
+    for (var inicio = 0; inicio < ordenados.length; inicio += tamano * 2) {
+      var izq = ordenados.slice(inicio, inicio + tamano);
+      var der = ordenados.slice(inicio + tamano, inicio + tamano * 2);
+      var i = 0;
+      var j = 0;
+      while (i < izq.length && j < der.length) {
+        if (comparar(izq[i], der[j]) <= 0) siguiente.push(izq[i++]);
+        else siguiente.push(der[j++]);
+      }
+      while (i < izq.length) siguiente.push(izq[i++]);
+      while (j < der.length) siguiente.push(der[j++]);
+    }
+    ordenados = siguiente;
+    tamano *= 2;
+  }
+  return ordenados;
+}
+
+var ORDENADOS = mergeSort(EVENTOS);
+
+function buildMerge(inicial) {
+  var frames = [];
+  var ordenados = inicial.slice();
+  frames.push({
+    kind: "inicio", arreglo: ordenados.slice(), izquierda: [], derecha: [], tomadoId: null, parcial: [], empate: false,
+    relato: "Ocho filas, en el orden en que sobrevivieron al archivo. Cada una es una corrida de tamaño 1. La clave es (hora, índice de archivo)."
+  });
+  var tamano = 1;
+  var pasada = 1;
+  while (tamano < inicial.length) {
+    var siguiente = [];
+    for (var inicio = 0; inicio < ordenados.length; inicio += tamano * 2) {
+      var izquierda = ordenados.slice(inicio, inicio + tamano);
+      var derecha = ordenados.slice(inicio + tamano, inicio + tamano * 2);
+      var i = 0;
+      var j = 0;
+      var parcial = [];
+      var dejar = function (ev, empate, relato) {
+        parcial.push(ev);
+        frames.push({
+          kind: "paso", arreglo: ordenados.slice(), izquierda: izquierda.slice(), derecha: derecha.slice(),
+          tomadoId: ev.indice, parcial: parcial.slice(), empate: empate, relato: relato
+        });
+      };
+      while (i < izquierda.length && j < derecha.length) {
+        var L = izquierda[i];
+        var R = derecha[j];
+        var empate = L.minutos === R.minutos;
+        var tomaL = comparar(L, R) <= 0;
+        var ev = tomaL ? L : R;
+        var otro = tomaL ? R : L;
+        if (tomaL) i += 1;
+        else j += 1;
+        dejar(ev, empate, empate
+          ? "Las dos cabezas dicen " + L.hora + ". La hora empata, así que decide el índice de archivo: " + L.indice + " contra " + R.indice + ". Gana la fila " + ev.indice + "."
+          : "Se compara " + L.hora + " (fila " + L.indice + ") con " + R.hora + " (fila " + R.indice + "). Gana " + ev.hora + ", anterior a " + otro.hora + ".");
+      }
+      while (i < izquierda.length) {
+        ev = izquierda[i++];
+        dejar(ev, false, "La corrida de la derecha ya no tiene piezas. " + ev.hora + " se copia sin comparar.");
+      }
+      while (j < derecha.length) {
+        ev = derecha[j++];
+        dejar(ev, false, "La corrida de la izquierda ya no tiene piezas. " + ev.hora + " se copia sin comparar.");
+      }
+      siguiente = siguiente.concat(parcial);
+    }
+    ordenados = siguiente;
+    var ultima = tamano * 2 >= inicial.length;
+    frames.push({
+      kind: ultima ? "fin" : "paso", arreglo: ordenados.slice(), izquierda: [], derecha: [], tomadoId: null, parcial: [], empate: false,
+      relato: ultima
+        ? "El lote queda en una sola corrida. La prioridad se escribe sobre estas filas, no sobre el orden del CSV."
+        : "Termina la pasada " + pasada + ". Cada corrida mide ahora hasta " + (tamano * 2) + " filas."
+    });
+    tamano *= 2;
+    pasada += 1;
+  }
+  return frames;
+}
+
+function buildK(eventos) {
+  var bloques = [];
+  for (var inicio = 0; inicio < eventos.length; inicio += 3) bloques.push(mergeSort(eventos.slice(inicio, inicio + 3)));
+  var cursor = bloques.map(function () { return 0; });
+  var nombres = ["A", "B", "C"];
+  var frames = [{
+    kind: "listo", bloques: bloques.map(function (b) { return b.slice(); }), cursor: cursor.slice(), salida: [], salio: null, bloqueSalio: null,
+    relato: "Esta miniatura parte 8 filas en bloques de 3. En el notebook el bloque mide 100.000. Cada bloque ya pasó por merge sort."
+  }];
+  var salida = [];
+  function cabezas() {
+    var heap = [];
+    cursor.forEach(function (pos, b) {
+      if (pos < bloques[b].length) heap.push({ ev: bloques[b][pos], b: b });
+    });
+    heap.sort(function (x, y) { return comparar(x.ev, y.ev) || x.b - y.b; });
+    return heap;
+  }
+  while (cabezas().length > 0) {
+    var mejor = cabezas()[0];
+    var ev = mejor.ev;
+    cursor[mejor.b] += 1;
+    salida.push(ev);
+    var sigue = cursor[mejor.b] < bloques[mejor.b].length ? bloques[mejor.b][cursor[mejor.b]] : null;
+    frames.push({
+      kind: "sale", bloques: bloques.map(function (b) { return b.slice(); }), cursor: cursor.slice(), salida: salida.slice(), salio: ev, bloqueSalio: mejor.b,
+      relato: sigue
+        ? "La cabeza menor es " + ev.hora + " (fila " + ev.indice + "), bloque " + nombres[mejor.b] + ". Sale, y ese bloque avanza a " + sigue.hora + "."
+        : "La cabeza menor es " + ev.hora + " (fila " + ev.indice + "), bloque " + nombres[mejor.b] + ". Sale, y ese bloque se agota."
+    });
+  }
+  frames.push({
+    kind: "fin", bloques: bloques.map(function (b) { return b.slice(); }), cursor: cursor.slice(), salida: salida.slice(), salio: null, bloqueSalio: null,
+    relato: "La salida coincide con un solo merge sort. mezcla_k junta bloques ya ordenados. En quick hay un solo bloque de 100.000 y esta mezcla no se llama."
+  });
+  return frames;
+}
+
+var MARCOS_MERGE = buildMerge(EVENTOS);
+var MARCOS_K = buildK(EVENTOS);
+
+function aplicarAlmacen(n) {
+  var catalogo = [];
+  var lru = [];
+  var desalojado = null;
+  var ultimo = null;
+  var pares = 0;
+  HISTORICO.slice(0, n).forEach(function (ev) {
+    desalojado = null;
+    ultimo = ev.producto;
+    var ficha = null;
+    catalogo.forEach(function (item) { if (item.producto === ev.producto) ficha = item; });
+    if (!ficha) {
+      ficha = { producto: ev.producto, categoria: ev.categoria, marca: ev.marca, precio: ev.precio, popularidad: 0 };
+      catalogo.push(ficha);
+    }
+    ficha.popularidad += 1;
+    pares += 1;
+    var puesto = lru.indexOf(ev.producto);
+    if (puesto >= 0) lru.splice(puesto, 1);
+    lru.push(ev.producto);
+    if (lru.length > 3) desalojado = lru.shift();
+  });
+  return { catalogo: catalogo, lru: lru, desalojado: desalojado, ultimo: ultimo, pares: pares };
+}
+
+function aplicarLookup(n) {
+  var catalogo = CATALOGO_INICIAL.map(function (item) {
+    return { producto: item.producto, categoria: item.categoria, marca: item.marca, precio: item.precio, popularidad: item.popularidad };
+  });
+  var lru = [100078, 390044, 100000];
+  var origen = "";
+  var desalojado = null;
+  var ultimo = null;
+  ORDEN_HEAP.slice(0, n).forEach(function (indice) {
+    var ev = STREAM[indice];
+    desalojado = null;
+    ultimo = ev.producto;
+    var ficha = null;
+    catalogo.forEach(function (item) { if (item.producto === ev.producto) ficha = item; });
+    if (!ficha) {
+      ficha = { producto: ev.producto, categoria: ev.categoria, marca: ev.marca, precio: ev.precio, popularidad: 0 };
+      catalogo.push(ficha);
+    }
+    ficha.popularidad += 1;
+    var puesto = lru.indexOf(ev.producto);
+    if (puesto >= 0) {
+      lru.splice(puesto, 1);
+      lru.push(ev.producto);
+      origen = "CACHE";
+    } else {
+      lru.push(ev.producto);
+      if (lru.length > 3) desalojado = lru.shift();
+      origen = "HASH";
+    }
+  });
+  return { catalogo: catalogo, lru: lru, origen: origen, desalojado: desalojado, ultimo: ultimo };
+}
+
+function filaRegla(ev) {
+  if (ev.tipo === "carrito") return 4;
+  if (ev.tipo === "vista") return 5;
+  if (ev.mod125 === 0) return 0;
+  if (ev.bucket === 0) return 1;
+  if (ev.bucket === 4) return 3;
+  return 2;
+}
+
+function reglasDe(ev) {
+  var huella = "huella(42, " + ev.usuario + ", " + ev.producto + ") deja h % 5 = " + ev.bucket + " y h % 125 = " + ev.mod125 + ".";
+  if (ev.tipo !== "compra") {
+    return [
+      { texto: huella, estado: "sigue" },
+      { texto: ev.tipo === "carrito" ? "El tipo es carrito. Prioridad 5." : "El tipo es vista. Prioridad 6.", estado: "toma" },
+      { texto: "Fraude, Express, Estándar y Programada solo se evalúan en una compra.", estado: "no" }
+    ];
+  }
+  var fraude = ev.mod125 === 0;
+  var entrega = ev.bucket === 0 ? "Express" : ev.bucket === 4 ? "Programada" : "Estándar";
+  return [
+    { texto: huella, estado: "sigue" },
+    { texto: "El tipo es compra, así que la prioridad sale de la huella.", estado: "sigue" },
+    { texto: fraude ? "h % 125 es 0. Prioridad 1, Fraude. Esta pregunta va antes que el bucket." : "h % 125 es " + ev.mod125 + ". No es fraude.", estado: fraude ? "toma" : "sigue" },
+    { texto: fraude ? "El bucket " + ev.bucket + " habría sido " + entrega + ". No se usa: el fraude ya decidió." : "Bucket " + ev.bucket + ": " + entrega + ".", estado: fraude ? "no" : "toma" }
+  ];
+}
+
+function tablaCms(compras) {
+  var tabla = [];
+  for (var fila = 0; fila < 5; fila += 1) {
+    var cols = [];
+    for (var col = 0; col < 16; col += 1) cols.push(0);
+    tabla.push(cols);
+  }
+  var veces11 = compras >= 2 ? 2 : compras >= 1 ? 1 : 0;
+  var veces12 = compras >= 3 ? 1 : 0;
+  for (fila = 0; fila < 5; fila += 1) {
+    tabla[fila][POS_CMS_11[fila]] += veces11;
+    tabla[fila][POS_CMS_12[fila]] += veces12;
+  }
+  return tabla;
+}
+
+function prefijoExistente(texto, anteriores) {
+  var largo = 0;
+  for (var i = 0; i < texto.length; i += 1) {
+    var slice = texto.slice(0, i + 1);
+    if (anteriores.some(function (otro) { return otro.indexOf(slice) === 0; })) largo = i + 1;
+    else break;
+  }
+  return largo;
+}
+
+function terminalesHasta(n) {
+  var salida = [];
+  FRASES.slice(0, n).forEach(function (par) {
+    par.forEach(function (frase) {
+      var ya = null;
+      salida.forEach(function (item) { if (item.texto === frase[0]) ya = item; });
+      if (ya) ya.ids.push(frase[1]);
+      else salida.push({ texto: frase[0], ids: [frase[1]] });
+    });
+  });
+  return salida;
+}
+
+function el(tag, props, kids) {
+  var node = document.createElement(tag);
+  props = props || {};
+  Object.keys(props).forEach(function (key) {
+    var value = props[key];
+    if (value == null) return;
+    if (key === "class") node.className = value;
+    else if (key === "text") node.textContent = String(value);
+    else node.setAttribute(key, String(value));
+  });
+  (kids || []).forEach(function (kid) {
+    if (kid == null) return;
+    node.appendChild(typeof kid === "string" ? document.createTextNode(kid) : kid);
+  });
+  return node;
+}
+
+function button(label, className, onClick, disabled) {
+  var node = el("button", { type: "button", class: className, text: label });
+  node.disabled = Boolean(disabled);
+  node.addEventListener("click", function () { onClick(); });
+  return node;
+}
+
+function chip(titulo, linea, pie, opts) {
+  opts = opts || {};
+  var cls = "chip";
+  if (opts.on) cls += " on";
+  if (opts.dim) cls += " dim";
+  if (opts.extra) cls += " " + opts.extra;
+  var b = el("b", { text: titulo });
+  if (opts.strike) b.style.textDecoration = "line-through";
+  var kids = [b, el("span", { text: linea })];
+  if (pie) kids.push(el("small", { text: pie }));
+  return el("div", { class: cls }, kids);
+}
+
+function chips(nodes) { return el("div", { class: "chips" }, nodes); }
+
+function labeled(texto, nodes) {
+  return el("div", { class: "labeled" }, [el("div", { class: "k", text: texto }), chips(nodes)]);
+}
+
+function relatoBox(texto, empate) {
+  return el("div", { class: empate ? "relato empate" : "relato", text: texto });
+}
+
+function callout(titulo, texto) {
+  return el("div", { class: "callout" }, [el("strong", { text: titulo }), el("span", { text: texto })]);
+}
+
+function tabla(headers, rows, tono) {
+  var trh = el("tr", {}, headers.map(function (h, i) {
+    return el("th", { class: i === 0 ? "" : "", text: h });
+  }));
+  var body = rows.map(function (row, r) {
+    return el("tr", { class: tono && tono[r] ? tono[r] : "" }, row.map(function (cell) {
+      return el("td", { text: cell });
+    }));
+  });
+  return el("div", { style: "overflow-x:auto" }, [el("table", {}, [el("thead", {}, [trh]), el("tbody", {}, body)])]);
+}
+
+function bits(encendidos, marcas) {
+  var wrap = el("div", { class: "bits" });
+  for (var bit = 0; bit < 16; bit += 1) {
+    var on = encendidos.indexOf(bit) >= 0;
+    var marca = marcas && marcas[bit] ? marcas[bit] : "";
+    var kids = [el("div", { text: String(bit) }), el("div", { text: on ? "1" : "0" })];
+    if (marca) kids.push(el("div", { text: marca }));
+    wrap.appendChild(el("div", { class: on ? "bit on" : "bit" }, kids));
+  }
+  return wrap;
+}
+
+function grilla(tablaValores, marcarFila) {
+  var wrap = el("div", {});
+  tablaValores.forEach(function (fila, i) {
+    var row = el("div", { class: "cms-row" }, [el("span", { class: "k", text: "h" + i })]);
+    fila.forEach(function (valor, col) {
+      var on = marcarFila && marcarFila[i] === col;
+      var cls = "cell" + (on ? " on" : "") + (valor > 0 ? " hit" : "");
+      row.appendChild(el("div", { class: cls, text: valor > 0 ? String(valor) : "" }));
+    });
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+
+function vectorDe(ev) {
+  var celdas = [];
+  for (var i = 0; i < 14; i += 1) celdas.push("0");
+  celdas[0] = ev.precioNorm;
+  celdas[1] = "1,00";
+  celdas[ev.catSlot] = "1";
+  celdas[ev.marcaSlot] = "1";
+  var wrap = el("div", { class: "vector" });
+  celdas.forEach(function (valor, i) {
+    wrap.appendChild(el("div", { class: valor === "0" ? "cell" : "cell on", text: i + ":" + valor }));
+  });
+  return wrap;
+}
+
+function letras(texto, ya, marca) {
+  var wrap = el("div", { class: "letras" });
+  for (var i = 0; i < texto.length; i += 1) {
+    var ch = texto.charAt(i) === " " ? "·" : texto.charAt(i);
+    wrap.appendChild(el("span", { class: i < ya ? "letra ya" : "letra nueva", text: ch }));
+  }
+  if (marca) wrap.appendChild(el("span", { class: "muted", text: "  " + marca }));
+  return wrap;
+}
+
+var state = { rama: "A", step: "lectura", sub: "dedup" };
+var frames = {};
+var RAMAS_OK = { A: true, B: true, C: true };
+
+var memoria = {
+  A: { step: "lectura", sub: "dedup" },
+  B: { step: "almacen", sub: "sesion" },
+  C: { step: "fifo", sub: "cola" }
+};
+
+function frameKey() { return state.rama + ":" + state.step + ":" + state.sub; }
+function frame() { return frames[frameKey()] || 0; }
+function setFrame(n) { frames[frameKey()] = n; render(); }
+function ensureSub() {
+  var lista = SUBS[state.step];
+  if (!lista) return;
+  var ok = lista.some(function (sub) { return sub.id === state.sub; });
+  if (!ok) state.sub = lista[0].id;
+}
+function goStep(id) { state.step = id; ensureSub(); render(); }
+function goSub(id) { state.sub = id; render(); }
+
+function setRama(rama) {
+  if (!RAMAS_OK[rama]) return;
+  var escenario = document.getElementById("escenario");
+  if (state.rama === rama) {
+    if (escenario && escenario.scrollIntoView) escenario.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  memoria[state.rama] = { step: state.step, sub: state.sub };
+  state.rama = rama;
+  state.step = memoria[rama].step;
+  state.sub = memoria[rama].sub;
+  ensureSub();
+  try {
+    if (history && history.replaceState) history.replaceState(null, "", "#" + rama);
+  } catch (err) { /* file:// puede rechazar el historial */ }
+  render();
+  if (escenario && escenario.scrollIntoView) escenario.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function view() {
+  var i = frame();
+  var key = state.step;
+  if (key === "limpieza") key = state.sub;
+  if (key === "indice") key = state.sub;
+  if (key === "reco") key = state.sub;
+  var fn = VISTAS[key] || VISTAS[state.step];
+  return fn(i);
+}
+
+var VISTAS = {
+  lectura: function (i) {
+    var n = [0, 4, 8, 12][i];
+    var nodes = [labeled("Filas ya leídas", CRUDAS.slice(0, n).map(function (fila) {
+      return chip(fila.hora, fila.tipo, fila.pie, { on: true });
+    }))];
+    if (n === 0) nodes = [el("p", { class: "muted", text: "El lector todavía no ha tomado un bloque." })];
+    return pack("Paso 1", "Lectura por bloques", LECTURA.length, nodes, LECTURA[i], i === LECTURA.length - 1 ? siguiente("Seguir a la limpieza", "limpieza") : null);
+  },
+  dedup: function (i) {
+    var total = CRUDAS.length + 1;
+    var actual = i === 0 ? null : CRUDAS[i - 1];
+    var nodes = [chips(CRUDAS.map(function (fila, idx) {
+      var vista = idx < i;
+      var pie = vista ? (fila.suerte === "queda" ? "fila " + fila.indice : fila.suerte === "vacio" ? "fuera · vacío" : "fuera · duplicado") : fila.pie;
+      return chip(fila.hora, fila.tipo, pie, { on: idx === i - 1 && fila.suerte === "queda", dim: !vista, strike: vista && fila.suerte !== "queda" });
+    }))];
+    var quedan = CRUDAS.slice(0, i).filter(function (fila) { return fila.suerte === "queda"; });
+    nodes.push(labeled("Claves que se quedan", quedan.map(function (fila) {
+      return chip(fila.hora, fila.tipo, "fila " + fila.indice, { on: true });
+    })));
+    var texto = i === 0
+      ? "Doce filas acaban de concatenarse. dropna corre primero y después drop_duplicates. 8 se quedan, en el orden del archivo."
+      : actual.relato;
+    return pack("Paso 2", "Quitar vacíos y duplicados", total, nodes, texto, i === total - 1 ? siguiente("Ver el merge sort", null, function () { goSub("merge"); }) : null);
+  },
+  merge: function (i) {
+    var marco = MARCOS_MERGE[i];
+    var nodes = [labeled("Arreglo", marco.arreglo.map(function (ev) {
+      return chip(ev.hora, ev.tipo, "fila " + ev.indice, { on: ev.indice === marco.tomadoId });
+    }))];
+    if (marco.izquierda.length || marco.derecha.length) {
+      nodes.push(el("div", { class: "grid-2" }, [
+        labeled("Izquierda", marco.izquierda.map(function (ev) { return chip(ev.hora, ev.tipo, "fila " + ev.indice, { on: ev.indice === marco.tomadoId }); })),
+        labeled("Derecha", marco.derecha.map(function (ev) { return chip(ev.hora, ev.tipo, "fila " + ev.indice, { on: ev.indice === marco.tomadoId }); }))
+      ]));
+    }
+    if (marco.parcial.length) {
+      nodes.push(labeled("Salida de este par", marco.parcial.map(function (ev) {
+        return chip(ev.hora, ev.tipo, "fila " + ev.indice, { on: ev.indice === marco.tomadoId });
+      })));
+    }
+    var next = null;
+    if (marco.kind === "fin") {
+      next = el("div", { class: "pills" }, [
+        button("Ver la mezcla de k vías", "btn", function () { goSub("kway"); }, false),
+        button("Seguir a la etiqueta", "btn primary", function () { goStep("etiqueta"); }, false)
+      ]);
+    }
+    return pack("Paso 2", "Merge sort por hora", MARCOS_MERGE.length, nodes, marco.relato, next, marco.empate);
+  },
+  kway: function (i) {
+    var marco = MARCOS_K[i];
+    var nombres = ["A", "B", "C"];
+    var grid = el("div", { class: "grid-2" });
+    marco.bloques.forEach(function (bloque, b) {
+      grid.appendChild(labeled("Bloque " + nombres[b], bloque.map(function (ev, idx) {
+        var cabeza = idx === marco.cursor[b];
+        var salioAqui = marco.bloqueSalio === b && marco.salio && marco.salio.indice === ev.indice;
+        return chip(ev.hora, ev.tipo, salioAqui ? "salió" : cabeza ? "cabeza" : "fila " + ev.indice, { on: salioAqui || cabeza, dim: idx < marco.cursor[b] && !salioAqui });
+      })));
+    });
+    var nodes = [grid];
+    nodes.push(labeled("Salida", marco.salida.map(function (ev) {
+      return chip(ev.hora, ev.tipo, "fila " + ev.indice, { on: marco.salio && marco.salio.indice === ev.indice });
+    })));
+    if (!marco.salida.length) nodes.push(el("p", { class: "muted", text: "La salida sigue vacía." }));
+    return pack("Paso 2", "Mezcla de k vías", MARCOS_K.length, nodes, marco.relato, marco.kind === "fin" ? siguiente("Seguir a la etiqueta", "etiqueta") : null);
+  },
+  etiqueta: function (i) {
+    var total = ORDENADOS.length + 1;
+    var actual = i === 0 ? null : ORDENADOS[i - 1];
+    var fila = actual ? filaRegla(actual) : -1;
+    var nodes = [tabla(["Condición", "Prioridad"], REGLAS, REGLAS.map(function (_, r) { return r === fila ? "toma" : ""; }))];
+    nodes.push(chips(ORDENADOS.map(function (ev, idx) {
+      var escrito = idx < i;
+      return chip(ev.hora, ev.tipo, escrito ? ev.prioridad + " · " + ev.etiqueta : "sin etiqueta", { on: idx === i - 1, dim: !escrito });
+    })));
+    if (actual) {
+      reglasDe(actual).forEach(function (nodo) {
+        var pref = nodo.estado === "toma" ? "Decide · " : nodo.estado === "no" ? "No se usa · " : "Sigue · ";
+        nodes.push(el("div", { class: nodo.estado === "toma" ? "callout" : "relato", text: pref + nodo.texto }));
+      });
+    }
+    var texto = actual
+      ? "E" + (i - 1) + " · " + actual.hora + " · " + actual.tipo
+      : "Ninguna etiqueta escrita. El siguiente fotograma rotula la vista de las 08:05.";
+    return pack("Paso 3", "Regla de prioridad 1 a 6", total, nodes, texto, i === total - 1 ? siguiente("Seguir al corte", "corte") : null);
+  },
+  corte: function (i) {
+    var relatos = [
+      "Ocho eventos con hora y prioridad. El corte todavía no existe.",
+      "train = max(1, int(8 × 0,60)) = 4. Las posiciones 0 a 3 son el histórico. En quick, el mismo cálculo sobre 100.000 da 60.000.",
+      "val = max(5, int(8 × 0,70)) = 5. La posición 4 es la validación. De la 5 a la 7 es la prueba. Las dos franjas siguen dentro del stream.",
+      "La fase B recibe las posiciones 0 a 3. La fase C hace deque de las posiciones 4 a 7. El heap, más adelante, los reordena por prioridad: 3, luego 4, luego 5, luego 6."
+    ];
+    var nodes = [chips(ORDENADOS.map(function (ev, idx) {
+      var historico = i >= 1 && idx < 4;
+      var stream = i >= 2 && idx >= 4;
+      var pie = i === 0 ? "E" + idx + " · " + ev.prioridad : historico ? "fase B" : stream ? "fase C" : "E" + idx;
+      return chip(ev.hora, ev.prioridad + " · " + ev.etiqueta, pie, { on: historico || stream, extra: historico ? "hist" : stream ? "stream" : "" });
+    }))];
+    if (i >= 3) {
+      nodes.push(callout("Misma hora, distinto lado del corte", "Express queda en el histórico. Estándar es la primera de la cola. Las dos dicen 09:40."));
+    }
+    var next = i === 3 ? el("div", { class: "pills" }, [
+      button("Abrir la fase B", "btn primary", function () { setRama("B"); }, false),
+      button("Abrir la fase C", "btn primary", function () { setRama("C"); }, false)
+    ]) : null;
+    return pack("Paso 4", "Corte por posición temporal", 4, nodes, relatos[i], next);
+  },
+  almacen: function (i) {
+    var est = aplicarAlmacen(i);
+    var nodes = [chips(HISTORICO.map(function (ev, idx) {
+      return chip(ev.hora, ev.etiqueta, String(ev.producto), { on: idx === i - 1, dim: idx >= i, extra: ev.delCorte ? "hist" : "" });
+    }))];
+    if (est.catalogo.length) {
+      nodes.push(tabla(
+        ["Producto", "Ficha", "Precio", "Popularidad"],
+        est.catalogo.map(function (f) { return [String(f.producto), f.categoria + " " + f.marca, String(f.precio), String(f.popularidad)]; })
+      ));
+    }
+    nodes.push(labeled("LRU, la más antigua a la izquierda", est.lru.map(function (id) {
+      return chip(String(id), id === est.ultimo ? "recién usado" : "en caché", "", { on: id === est.ultimo });
+    })));
+    if (est.desalojado != null) nodes.push(callout("Desalojo", "Sale " + est.desalojado + ", la entrada más antigua."));
+    return pack("Paso 5", "Catálogo, matriz y LRU", RELATOS_ALMACEN.length, nodes, RELATOS_ALMACEN[i], i === RELATOS_ALMACEN.length - 1 ? siguiente("Seguir al B+Tree", "arbol") : null);
+  },
+  arbol: function (i) {
+    var f = FRAMES_ARBOL[i];
+    var nodes = [];
+    if (f.separador != null) nodes.push(el("p", { text: "Separador " + f.separador }));
+    var hojas = el("div", { class: "hojas" });
+    f.hojas.forEach(function (hoja, hi) {
+      var box = el("div", { class: hi === f.hojaActiva ? "hoja on" : "hoja" }, [el("div", { class: "k", text: "Hoja " + (hi + 1) })]);
+      var row = el("div", { class: "chips" });
+      if (!hoja.length) row.appendChild(el("span", { class: "muted", text: "Vacía" }));
+      hoja.forEach(function (clave) {
+        row.appendChild(chip(String(clave.precio), String(clave.producto), "precio · producto", { on: clave.precio === f.precioActivo }));
+      });
+      box.appendChild(row);
+      hojas.appendChild(box);
+    });
+    nodes.push(hojas);
+    return pack("Paso 6", "Inserción en el B+Tree", FRAMES_ARBOL.length, nodes, f.relato, i === FRAMES_ARBOL.length - 1 ? siguiente("Seguir al índice", "indice") : null);
+  },
+  sesion: function (i) {
+    var pares = [
+      [],
+      [["180220", "180330", "sD"]],
+      [["180220", "180330", "sD"], ["100055", "100078", "sH"]],
+      [["180220", "180330", "sD"], ["100055", "100078", "sH"]],
+      [["180220", "180330", "sD"], ["100055", "100078", "sH"]]
+    ][i];
+    var nodes = [el("div", { class: "pair" }, pares.map(function (par) {
+      return el("div", { class: "pair" }, [
+        chip(par[0], par[2], "sesión", { on: true }),
+        el("span", { text: "peso 1" }),
+        chip(par[1], par[2], "sesión", { on: true })
+      ]);
+    }))];
+    if (!pares.length) nodes = [el("p", { class: "muted", text: "El grafo de sesión espera la primera sesión con dos productos." })];
+    if (i >= 3) nodes.push(chip("390044", "sF", "sin par", { dim: true }));
+    if (i >= 4) nodes.push(chip("100000", "sB", "sin par", { dim: true }));
+    return pack("Paso 7", "Grafo de sesión", RELATOS_SESION.length, nodes, RELATOS_SESION[i], null);
+  },
+  vector: function (i) {
+    var nodes = [];
+    if (i === 0) nodes.push(el("p", { class: "muted", text: "El índice espera el primer producto del catálogo. Cada vector tiene 14 casillas." }));
+    else {
+      var ev = HISTORICO[i - 1];
+      nodes.push(chip(String(ev.producto), ev.categoria + " " + ev.marca, ev.hora, { on: true }));
+      nodes.push(vectorDe(ev));
+    }
+    return pack("Paso 7", "Vector de 14 casillas", RELATOS_VECTOR.length, nodes, RELATOS_VECTOR[i], null);
+  },
+  vecinos: function () {
+    var nodes = [
+      tabla(["Producto", "Vecino más cercano", "Distancia L2", "Por qué"], VECINOS),
+      callout("La distancia chica", "180330 y 390044 encienden las mismas casillas de categoría y de marca. Lo que queda es el precio, 55 contra 45.")
+    ];
+    return pack("Paso 7", "Vecinos del HNSW", 1, nodes, "Con los seis vectores cargados, cada producto se queda con su vecino más cercano. En la fase C el híbrido toma 1 de esta lista y completa con 4 del grafo de sesión.", siguiente("Seguir al fraude", "fraudeB"));
+  },
+  fraudeB: function (i) {
+    var compras = i === 0 ? 0 : i >= 4 ? 3 : i;
+    var filaActiva = i === 1 || i === 2 ? POS_CMS_11 : i === 3 ? POS_CMS_12 : null;
+    var encendidos = i === RELATOS_FRAUDE_B.length - 1 ? BITS_DEV.concat(BITS_PAY) : [];
+    var nodes = [
+      labeled("Conjunto exacto", i >= 1 ? [chip("dev-11-0", "confirmado", "compra 08:20", { on: true }), chip("pay-11-1", "confirmado", "compra 08:20", { on: true })] : []),
+      el("div", { class: "k", text: "Count-Min, ancho 16 en el dibujo" }),
+      grilla(tablaCms(compras), filaActiva),
+      el("div", { class: "k", text: "Bloom, 16 bits en el dibujo" }),
+      bits(encendidos, null)
+    ];
+    if (!i) nodes[0] = el("p", { class: "muted", text: "El conjunto exacto espera la primera compra confirmada." });
+    var nota = i === RELATOS_FRAUDE_B.length - 1 ? callout("El conjunto exacto confirma", "Si el Bloom dice que está y el conjunto no lo tiene, la fase C decide revisar.") : null;
+    if (nota) nodes.push(nota);
+    return pack("Paso 8", "Bloom, Count-Min y conjunto exacto", RELATOS_FRAUDE_B.length, nodes, RELATOS_FRAUDE_B[i], i === RELATOS_FRAUDE_B.length - 1 ? siguiente("Seguir al grafo", "grafo") : null);
+  },
+  grafo: function (i) {
+    var nodes = [el("div", { class: "pair" })];
+    if (i >= 1) nodes[0].appendChild(chip("100055", "sH · 08:20", "Fraude", { on: i === 1 }));
+    if (i >= 2) {
+      nodes[0].appendChild(el("span", { text: "peso 1" }));
+      nodes[0].appendChild(chip("100078", "sH · 08:35", "misma sesión", { on: i === 2 }));
+    }
+    if (i >= 3) nodes[0].appendChild(chip("100000", "sB · 09:40", "nodo suelto", { on: true }));
+    if (i < 1) nodes = [el("p", { class: "muted", text: "Todavía no hay compras en el grafo." })];
+    if (i >= 2) nodes.push(callout("La misma pareja, en dos grafos", "100055 y 100078 también tienen arista en el grafo de sesión. Aquí entran porque las dos filas son compras y 100055 ocurrió antes."));
+    return pack("Paso 9", "Grafo de co-compra", RELATOS_GRAFO.length, nodes, RELATOS_GRAFO[i], i === RELATOS_GRAFO.length - 1 ? siguiente("Seguir al trie", "trie") : null);
+  },
+  trie: function (i) {
+    var nodes = [];
+    var puestos = terminalesHasta(Math.max(0, i));
+    var anteriores = i <= 1 ? [] : FRASES.slice(0, i - 1).reduce(function (acc, par) {
+      return acc.concat(par.map(function (frase) { return frase[0]; }));
+    }, []);
+    var activas = i === 0 ? [] : FRASES[i - 1];
+    activas.forEach(function (frase) {
+      var ya = prefijoExistente(frase[0], anteriores);
+      var ids = "";
+      puestos.forEach(function (item) { if (item.texto === frase[0]) ids = item.ids.join(" · "); });
+      nodes.push(el("div", { class: "labeled" }, [
+        el("div", { class: "k", text: frase[0] }),
+        letras(frase[0], ya, ids)
+      ]));
+    });
+    if (puestos.length) {
+      nodes.push(tabla(["Texto en el terminal", "product_id"], puestos.map(function (item) { return [item.texto, item.ids.join(", ")]; })));
+    } else nodes.push(el("p", { class: "muted", text: "La raíz espera el primer producto del catálogo." }));
+    var nota = i === RELATOS_TRIE.length - 1 ? callout("completar(\"sho\")", "El BFS llega primero a shoes nike y devuelve 180220. Después shoes adidas devuelve 180330 y 390044.") : null;
+    if (nota) nodes.push(nota);
+    return pack("Paso 10", "Inserción en el trie", RELATOS_TRIE.length, nodes, RELATOS_TRIE[i], null);
+  },
+  fifo: function (i) {
+    var entrados = STREAM.slice(0, Math.min(4, i));
+    var dibujo = entrados.slice().reverse();
+    var conOrden = i === RELATOS_FIFO.length - 1;
+    var nodes = [el("div", { class: "pair" }, [el("span", { class: "k", text: "entra" })].concat(
+      dibujo.length ? dibujo.map(function (ev) {
+        return chip(ev.hora, ev.prioridad + " · " + ev.etiqueta, conOrden ? "orden " + ev.orden : ev.orden === 0 ? "frente" : "detrás", { on: conOrden ? ev.orden === 0 : ev.orden === entrados.length - 1 });
+      }) : [el("span", { class: "muted", text: "La cola espera el primer evento." })]
+    ).concat([el("span", { class: "k", text: "sale" })]))];
+    return pack("Paso 11", "Cola FIFO", RELATOS_FIFO.length, nodes, RELATOS_FIFO[i], i === RELATOS_FIFO.length - 1 ? siguiente("Seguir al heap", "heap") : null);
+  },
+  heap: function (i) {
+    var arreglo = HEAP_ARREGLOS[i].map(function (indice) { return STREAM[indice]; });
+    var salida = HEAP_SALIDAS[i].map(function (indice) { return STREAM[indice]; });
+    var activo = HEAP_ACTIVOS[i];
+    var heap = el("div", { class: "heap" });
+    [0, 1, 2].forEach(function (nivel) {
+      var desde = nivel === 0 ? 0 : nivel === 1 ? 1 : 3;
+      var hasta = nivel === 0 ? 1 : nivel === 1 ? 3 : 4;
+      var level = el("div", { class: "heap-level" });
+      arreglo.slice(desde, hasta).forEach(function (ev) {
+        level.appendChild(chip("(" + ev.prioridad + ", " + ev.orden + ")", ev.etiqueta, ev.hora, { on: ev.orden === activo }));
+      });
+      if (level.childNodes.length) heap.appendChild(level);
+    });
+    var nodes = [heap];
+    nodes.push(labeled("Arreglo", arreglo.map(function (ev, idx) {
+      return chip("[" + idx + "]", "(" + ev.prioridad + ", " + ev.orden + ")", ev.etiqueta, { on: ev.orden === activo });
+    })));
+    nodes.push(labeled("Ya salieron", salida.map(function (ev, idx) {
+      return chip(ev.etiqueta, ev.hora, "prioridad " + ev.prioridad, { on: idx === salida.length - 1 });
+    })));
+    if (!arreglo.length) nodes[1] = el("p", { class: "muted", text: "El arreglo está vacío." });
+    return pack("Paso 12", "Min-heap", RELATOS_HEAP.length, nodes, RELATOS_HEAP[i], i === RELATOS_HEAP.length - 1 ? siguiente("Seguir al lookup", "lookup") : null);
+  },
+  lookup: function (i) {
+    var est = aplicarLookup(i);
+    var nodes = [chips(ORDEN_HEAP.map(function (indice, turno) {
+      var ev = STREAM[indice];
+      return chip(ev.etiqueta, String(ev.producto), turno < i ? (ev.producto === 100000 ? "CACHE" : "HASH") : "en espera", { on: turno === i - 1, dim: turno >= i });
+    }))];
+    nodes.push(tabla(
+      ["Producto", "Ficha", "Popularidad"],
+      est.catalogo.map(function (f) { return [String(f.producto), f.categoria + " " + f.marca, String(f.popularidad)]; })
+    ));
+    nodes.push(labeled("LRU", est.lru.map(function (id) {
+      return chip(String(id), id === est.ultimo ? est.origen : "en caché", "", { on: id === est.ultimo });
+    })));
+    if (est.desalojado != null) nodes.push(callout("Desalojo", "Sale " + est.desalojado + "."));
+    return pack("Paso 13", "Lookup en el almacén", RELATOS_LOOKUP.length, nodes, RELATOS_LOOKUP[i], i === RELATOS_LOOKUP.length - 1 ? siguiente("Seguir al orquestador", "orquestador") : null);
+  },
+  orquestador: function (i) {
+    var toma = [null, "fraude", "fraude", "reco", "reco"][i];
+    var nodes = [el("div", { class: "grid-2" }, [
+      el("div", { class: toma === "reco" ? "box on" : "box" }, [el("b", { text: "Recomendación" }), el("span", { text: "Vista y carrito. Caja 15a." })]),
+      el("div", { class: toma === "fraude" ? "box on" : "box" }, [el("b", { text: "Fraude" }), el("span", { text: "Compra. Caja 15b." })])
+    ])];
+    nodes[0].querySelectorAll(".box").forEach(function (box) { box.style.padding = "12px"; });
+    return pack("Paso 14", "Una rama por evento", RELATOS_ORQ.length, nodes, RELATOS_ORQ[i], i === RELATOS_ORQ.length - 1 ? el("div", { class: "pills" }, [
+      button("Abrir recomendación", "btn primary", function () { goStep("reco"); }, false),
+      button("Abrir fraude", "btn primary", function () { goStep("fraudeC"); }, false)
+    ]) : null);
+  },
+  cola: function (i) {
+    var nodes = [];
+    if (i > 0) nodes.push(labeled("Top 5 de populares", TOP_COLA.map(function (id, idx) {
+      return chip(id, idx === 0 ? "cuota de 1" : "relleno", "", { on: true });
+    })));
+    else nodes.push(el("p", { class: "muted", text: "El top todavía no se arma. El índice y el grafo son los del paso 7." }));
+    return pack("Paso 15a", "Recomendación de un producto nuevo", RELATOS_COLA.length, nodes, RELATOS_COLA[i], null);
+  },
+  cuota: function (i) {
+    var visibles = i === 0 ? [] : i === 1 ? TOP_CUOTA.slice(0, 2) : TOP_CUOTA;
+    var nodes = [labeled("Top", visibles.map(function (item) {
+      return chip(item[0], item[1], "", { on: true });
+    }))];
+    if (!visibles.length) nodes = [el("p", { class: "muted", text: "180330 está en el índice. El siguiente fotograma toma las cuotas." })];
+    return pack("Paso 15a", "Cuota 1 del índice y 4 del grafo", RELATOS_CUOTA.length, nodes, RELATOS_CUOTA[i], i === RELATOS_CUOTA.length - 1 ? siguiente("Seguir a co-compra", "coco") : null);
+  },
+  fraudeC: function (i) {
+    var consulta = i === 0 ? null : FRAUDE_BITS[i - 1];
+    var marcas = {};
+    if (consulta) {
+      consulta.device.forEach(function (bit) { marcas[bit] = "dev"; });
+      consulta.pago.forEach(function (bit) { marcas[bit] = marcas[bit] ? "ambos" : "pago"; });
+    }
+    var nodes = [
+      chips([
+        chip("dev-11-0", "conjunto exacto", "compra 08:20", { on: i > 0 }),
+        chip("pay-11-1", "conjunto exacto", "compra 08:20", { on: i > 0 })
+      ]),
+      el("div", { class: "k", text: "Bloom de 16 bits" }),
+      bits([0, 3, 8, 12, 14], marcas),
+      el("div", { class: "k", text: "Count-Min del histórico" }),
+      grilla(CMS, consulta ? consulta.cms : null)
+    ];
+    if (consulta) {
+      var minimo = Math.min.apply(null, consulta.vals);
+      nodes.push(el("p", { class: "muted", text: "Celdas de esta clave: " + consulta.vals.join(", ") + ". La estimación es el mínimo, " + minimo + "." }));
+    }
+    if (i === 2) nodes.push(callout("El falso positivo cabe en 16 bits", "pay-13-1 enciende bits que ya estaban en 1. Con 9.816 bits esa misma compra devuelve permitir. El conjunto exacto, en los dos tamaños, deja el pago afuera."));
+    return pack("Paso 15b", "Decidir fraude", RELATOS_FRAUDE_C.length, nodes, RELATOS_FRAUDE_C[i], i === RELATOS_FRAUDE_C.length - 1 ? siguiente("Seguir a co-compra", "coco") : null);
+  },
+  coco: function (i) {
+    var nodes = [el("div", { class: "pair" }, [
+      chip("100055", "sH · 08:20", "histórico", {}),
+      el("span", { text: "peso 1" }),
+      chip("100078", "sH · 08:35", "histórico", {}),
+      chip("100000", "sB", i === 0 ? "sin arista nueva" : "sG y sE no lo unen", { on: i > 0 })
+    ])];
+    if (i >= 1) nodes.push(chip("sG", "100000 · 09:40", "revisar · nuevas 0", { on: i === 1 }));
+    if (i >= 2) nodes.push(chip("sE", "100000 · 12:10", "permitir · nuevas 0", { on: true }));
+    nodes.push(el("div", { class: "stats" }, [
+      el("div", { class: "stat" }, [el("b", { text: "3" }), el("span", { text: "Nodos" })]),
+      el("div", { class: "stat" }, [el("b", { text: "1" }), el("span", { text: "Aristas" })]),
+      el("div", { class: "stat" }, [el("b", { text: "0" }), el("span", { text: "Aristas nuevas del stream" })])
+    ]));
+    return pack("Paso 16", "Aristas de la compra que siguió", RELATOS_COCO.length, nodes, RELATOS_COCO[i], i === RELATOS_COCO.length - 1 ? siguiente("Seguir al servicio", "servicio") : null);
+  },
+  servicio: function () {
+    var nodes = [
+      el("div", { class: "stats" }, [
+        el("div", { class: "stat" }, [el("b", { text: "4" }), el("span", { text: "Eventos del stream" })]),
+        el("div", { class: "stat" }, [el("b", { text: "2" }), el("span", { text: "Consultas" })]),
+        el("div", { class: "stat" }, [el("b", { text: "2" }), el("span", { text: "Ventas" })]),
+        el("div", { class: "stat" }, [el("b", { text: "1" }), el("span", { text: "Revisión" })]),
+        el("div", { class: "stat" }, [el("b", { text: "0" }), el("span", { text: "Bloqueos" })])
+      ]),
+      tabla(
+        ["Orden del heap", "Evento", "Lookup", "Rama", "Resultado"],
+        [
+          ["1", "Estándar 09:40", "CACHE", "Fraude y co-compra", "revisar · 0 aristas"],
+          ["2", "Programada 12:10", "CACHE", "Fraude y co-compra", "permitir · 0 aristas"],
+          ["3", "Carrito 10:55", "HASH", "Recomendación", TOP_COLA.join(", ")],
+          ["4", "Vista 11:20", "HASH", "Recomendación", TOP_COLA.join(", ")]
+        ]
+      ),
+      el("h3", { text: "completar(\"sho\")" }),
+      chips([
+        chip("180220", "shoes nike", "primero", { on: true }),
+        chip("180330", "shoes adidas", "misma rama", {}),
+        chip("390044", "shoes adidas", "misma rama", {})
+      ])
+    ];
+    return pack("Paso 21", "Trie, Top-K y el tablero", 1, nodes, "Ventas cuenta la compra cuya decisión fue distinta de bloquear. La Estándar quedó en revisar y entra en las ventas y en la alerta. La Programada entra solo en las ventas.", null);
+  }
+};
+
+function siguiente(label, step, fn) {
+  return button(label, "btn", fn || function () { goStep(step); }, false);
+}
+
+function pack(tag, title, total, nodes, texto, next, empate) {
+  return { tag: tag, title: title, total: total, nodes: nodes, texto: texto, next: next, empate: Boolean(empate) };
+}
+
+function fichaKey() {
+  if (state.step === "limpieza") return "limpieza";
+  if (state.step === "indice") return "indice";
+  if (state.step === "reco") return "reco";
+  return state.step;
+}
+
+function render() {
+  ensureSub();
+  document.getElementById("btn-a").className = "trunk" + (state.rama === "A" ? " is-on" : "");
+  document.getElementById("btn-b").className = "rama b" + (state.rama === "B" ? " is-on" : "");
+  document.getElementById("btn-c").className = "rama c" + (state.rama === "C" ? " is-on" : "");
+  document.getElementById("rama-actual").textContent = state.rama === "A"
+    ? "Abierto el tramo común. El corte, al final, reparte el lote."
+    : state.rama === "B"
+      ? "Abierta la rama B. Estas estructuras leen el histórico que dejó el corte."
+      : "Abierta la rama C. Esta cola lee el stream que dejó el corte, y consulta lo que armó la rama B.";
+  var fase = FASES[state.rama];
+  document.getElementById("titulo-fase").textContent = fase.titulo;
+  document.getElementById("lede-fase").textContent = fase.lede;
+  var pasos = document.getElementById("pasos");
+  pasos.replaceChildren.apply(pasos, fase.pasos.map(function (paso) {
+    return button(paso.orden + " " + paso.nombre, "pill" + (state.step === paso.id ? " is-on" : ""), function () { goStep(paso.id); }, false);
+  }));
+  var subs = document.getElementById("subs");
+  var lista = SUBS[state.step] || [];
+  subs.replaceChildren.apply(subs, lista.map(function (sub) {
+    return button(sub.nombre, "pill" + (state.sub === sub.id ? " is-on" : ""), function () { goSub(sub.id); }, false);
+  }));
+  var spec = view();
+  var i = Math.max(0, Math.min(spec.total - 1, frame()));
+  if (i !== frame()) frames[frameKey()] = i;
+  var controles = el("div", { class: "pills" }, [
+    button("Anterior", "btn", function () { setFrame(i - 1); }, i <= 0),
+    button("Siguiente", "btn", function () { setFrame(i + 1); }, i >= spec.total - 1),
+    button("Reiniciar", "btn", function () { setFrame(0); }, i === 0),
+    el("span", { class: "muted", text: (i + 1) + " / " + spec.total })
+  ]);
+  var cabeza = el("div", { class: "pair" }, [
+    el("h3", { text: spec.title }),
+    el("span", { class: "k", text: spec.tag })
+  ]);
+  var ficha = FICHAS[fichaKey()];
+  var nota = el("div", { class: "callout" }, [
+    el("strong", { text: ficha[0] }),
+    el("span", { text: ficha[1] + " En el notebook: " + ficha[2] + "." })
+  ]);
+  var kids = [cabeza, controles].concat(spec.nodes).concat([relatoBox(spec.texto, spec.empate), spec.next, nota]);
+  document.getElementById("panel").replaceChildren.apply(document.getElementById("panel"), kids.filter(function (nodo) { return nodo; }));
+  var atajos = document.getElementById("atajos");
+  if (state.rama === "A") {
+    atajos.replaceChildren(
+      button("Abrir la fase B", "btn primary", function () { setRama("B"); }, false),
+      button("Abrir la fase C", "btn primary", function () { setRama("C"); }, false)
+    );
+  } else {
+    var otra = state.rama === "B" ? "C" : "B";
+    atajos.replaceChildren(
+      button("Volver a la fase A", "btn", function () { setRama("A"); }, false),
+      button(otra === "B" ? "Abrir la fase B" : "Abrir la fase C", "btn", function () { setRama(otra); }, false)
+    );
+  }
+}
+
+function boot() {
+  ["btn-a", "btn-b", "btn-c"].forEach(function (id) {
+    document.getElementById(id).addEventListener("click", function (event) {
+      setRama(event.currentTarget.getAttribute("data-rama"));
+    });
+  });
+  var hash = String(location.hash || "").replace("#", "");
+  if (RAMAS_OK[hash]) state.rama = hash;
+  if (state.rama === "B") state.step = "almacen";
+  if (state.rama === "C") state.step = "fifo";
+  render();
+}
+
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+}
+
+if (typeof document === "undefined") {
+  var orden = ORDENADOS.map(function (ev) { return ev.indice; }).join(",");
+  if (orden !== "3,7,5,1,6,2,0,4") throw new Error("orden " + orden);
+  var finK = MARCOS_K[MARCOS_K.length - 1].salida.map(function (ev) { return ev.indice; }).join(",");
+  if (finK !== orden) throw new Error("kway " + finK);
+  var alm = aplicarAlmacen(6);
+  if (alm.lru.join(",") !== "100078,390044,100000") throw new Error("lru " + alm.lru.join(","));
+  var look = aplicarLookup(4);
+  if (look.lru.join(",") !== "100000,480002,510081") throw new Error("lookup " + look.lru.join(","));
+  if (look.origen !== "HASH") throw new Error("origen " + look.origen);
+  if (MARCOS_MERGE[MARCOS_MERGE.length - 1].arreglo.map(function (ev) { return ev.indice; }).join(",") !== orden) {
+    throw new Error("merge");
+  }
+}
+  </script>
+</body>
+</html>

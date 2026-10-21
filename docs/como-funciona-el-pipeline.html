@@ -145,8 +145,39 @@
     .node.reco { border-top-color: var(--green); }
     .node.fraude { border-top-color: var(--rose); }
     .node.cocompra { border-top-color: var(--amber); }
-    .node.servicio { border-top-color: var(--slate); flex: 1; max-width: 760px; }
+    .node.servicio { border-top-color: var(--slate); }
+    .node.entrada { border-top-color: var(--accent); }
+    .node.cierre { border-top-color: var(--slate); }
+    .node.orq { border-top-color: var(--ink); }
     .arrow-row { text-align: center; color: var(--muted); font-size: 13px; }
+    .kicker { display: block; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+    .fase-a, .fase-box {
+      background: #f7f4ee;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .fase-box.c { border-color: var(--accent); }
+    .fase-split, .split-labels, .fase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .fase-split { margin-top: 10px; align-items: start; }
+    .fase-grid { gap: 8px; }
+    .split-labels { margin-top: 8px; color: var(--muted); font-size: 13px; }
+    .mini { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .celda {
+      min-width: 52px;
+      text-align: center;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 2px 6px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .celda small { display: block; font-weight: 450; color: var(--muted); font-size: 10px; }
+    .celda.marca { border-color: var(--accent); }
+    .mini-lab { font-size: 11px; color: var(--muted); width: 36px; }
+    .mini-lab.sale { color: var(--accent); }
+    .fase-a .node, .fase-box .node { width: 100%; }
+    .fase-split .node { min-width: 0; }
     .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 8px; }
     .swatch { width: 10px; height: 10px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -221,7 +252,7 @@
     }
     footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
     @media (max-width: 860px) {
-      .stats, .grid-2, .grid-3, .figs { grid-template-columns: 1fr; }
+      .stats, .grid-2, .grid-3, .figs, .fase-split, .split-labels, .fase-grid { grid-template-columns: 1fr; }
       h1 { font-size: 26px; }
       .top-inner { flex-direction: column; align-items: flex-start; }
     }
@@ -244,6 +275,7 @@
         <a href="#servicio">Servicio</a>
         <a href="#pruebas">Pruebas</a>
         <a href="#guion">Guion</a>
+        <a href="simulador-fases-a-b-c.html">Simulador A–C</a>
       </nav>
     </div>
   </header>
@@ -252,91 +284,226 @@
     <section>
       <h1>Cómo funciona el motor de comercio electrónico</h1>
       <p class="lede">
-        Un evento de vista, carrito o compra entra por un núcleo común y después sigue una sola rama.
-        El 60&nbsp;% más antiguo del lote arma el estado. El 40&nbsp;% restante es el stream vivo:
-        entra por una cola FIFO y sale por un min-heap.
+        Opción B, comercio electrónico, sobre el notebook v2 de REES46. El recorrido empieza en la fase A,
+        con el archivo entero. La etapa 0 del enunciado es la cola, y entra en el paso 11, cuando el 40&nbsp;%
+        llega al recuadro de la fase C.
       </p>
       <p class="source">
-        Fuente: <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>, cruzado con los canvas
-        «Algoritmos por etapa del pipeline», «Ficha y comportamiento» y «Qué entra del CSV».
+        Fuente: <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>, cruzado con
+        Proyecto EDA 2026-2, sección Arquitectura Obligatoria del Pipeline.
         El archivo que se procesa es <code>2019-Oct.csv</code>. Semilla 42.
       </p>
       <div class="stats">
         <div class="stat"><b>10</b><span>etapas del enunciado</span></div>
         <div class="stat"><b>3</b><span>etapas fijas: 6, 7 y 8</span></div>
+        <div class="stat"><b>3</b><span>ramas de un evento</span></div>
         <div class="stat"><b>60 / 40</b><span>histórico y stream</span></div>
-        <div class="stat"><b>1 + 4</b><span>híbrido de recomendación</span></div>
       </div>
     </section>
 
     <section id="pipeline">
       <h2>Pipeline con ramas</h2>
       <p class="lede">
-        El núcleo lo recorren todos los eventos del stream. El orquestador elige la rama según el tipo.
-        Un clic en un bloque abre el detalle de esa etapa.
+        Arriba, de izquierda a derecha, corre la fase A. Después termina la fase B, a la izquierda.
+        Recién entonces el 40&nbsp;% entra al recuadro de la derecha. Un clic en una caja marca la misma fila de la tabla.
       </p>
-      <div class="flow" style="margin-top:14px">
-        <div class="lane-label">Entrada</div>
-        <div class="row">
-          <button class="node static" type="button" disabled>
-            <b>Evento</b>
-            <small>Vista, carrito o compra</small>
+
+      <div class="fase-a" style="margin-top:14px">
+        <div class="lane-label">Fase A · Archivo completo, antes de partir</div>
+        <div class="row" style="margin-top:8px">
+          <button class="node" type="button" data-paso="lectura">
+            <span class="kicker">Paso 1</span>
+            <b>Lectura</b>
+            <small>CSV por bloques. Sigue siendo el archivo entero.</small>
           </button>
-        </div>
-        <div class="arrow-row">↓</div>
-        <div class="lane-label">Núcleo común: todos los eventos del stream</div>
-        <div class="row">
-          <button class="node nucleo" type="button" data-etapa="0"><b>0 Ingesta</b><small>Cola FIFO (deque)</small></button>
-          <button class="node nucleo" type="button" data-etapa="1"><b>1 Limpieza</b><small>Merge sort, deduplicación, búsqueda binaria</small></button>
-          <button class="node nucleo" type="button" data-etapa="2"><b>2 Prioridad</b><small>Min-heap: fraude, express, estándar, programada, carrito, vista</small></button>
-          <button class="node nucleo" type="button" data-etapa="3"><b>3–5 Almacén e índices</b><small>Hash, LRU, matriz dispersa, B+Tree, KD-Tree</small></button>
-        </div>
-        <div class="arrow-row">↓</div>
-        <div class="row">
-          <button class="node static" type="button" disabled>
-            <b>Orquestador</b>
-            <small>Elige la rama por tipo de evento</small>
+          <button class="node nucleo" type="button" data-paso="limpieza">
+            <span class="kicker">Paso 2</span>
+            <b>1 Limpieza</b>
+            <small>Quita vacíos y duplicados. Merge sort por hora.</small>
           </button>
-        </div>
-        <div class="arrow-row">vista o carrito ↙ &nbsp;&nbsp; compra ↓ &nbsp;&nbsp; no bloqueada →</div>
-        <div class="row">
-          <button class="node reco" type="button" data-etapa="7"><b>7 Recomendación</b><small>Híbrido 1+4: HNSW y grafo de sesión</small></button>
-          <button class="node fraude" type="button" data-etapa="6"><b>6 Fraude</b><small>Bloom Filter, Count-Min Sketch, conjunto exacto</small></button>
-          <button class="node cocompra" type="button" data-etapa="8"><b>8 Co-compra</b><small>Grafo ponderado, PageRank, Louvain</small></button>
-        </div>
-        <div class="arrow-row">↓ las tres salidas llegan al servicio</div>
-        <div class="row">
-          <button class="node servicio" type="button" data-etapa="9"><b>9 Servicio y dashboard</b><small>Trie de autocompletado, Top-K, seis pestañas</small></button>
+          <button class="node" type="button" data-paso="etiqueta">
+            <span class="kicker">Paso 3</span>
+            <b>Etiqueta de prioridad</b>
+            <small>Escribe 1 a 6 en cada fila. El heap la usa en la caja 2.</small>
+          </button>
+          <button class="node" type="button" data-paso="corte">
+            <span class="kicker">Paso 4</span>
+            <b>Corte 60 / 40</b>
+            <small>60&nbsp;% arma la fase B. 40&nbsp;% baja a la etapa 0.</small>
+          </button>
         </div>
       </div>
+      <div class="split-labels">
+        <span>60&nbsp;% histórico baja a la fase B</span>
+        <span>40&nbsp;% baja a la caja 0 Cola FIFO</span>
+      </div>
+
+      <div class="fase-split">
+        <div class="fase-box">
+          <div class="lane-label">Fase B · Histórico 60&nbsp;%</div>
+          <p class="source" style="margin-top:0">Estas cajas se arman aquí. El stream las consulta en la fase C. Este tramo no entra a la cola.</p>
+          <div class="fase-grid">
+            <button class="node nucleo" type="button" data-paso="b3">
+              <span class="kicker">Paso 5</span>
+              <b>3 Almacén se llena</b>
+              <small>Hash, LRU y matriz dispersa.</small>
+            </button>
+            <button class="node nucleo" type="button" data-paso="b4">
+              <span class="kicker">Paso 6</span>
+              <b>4 B+Tree se llena</b>
+              <small>Índice de precio.</small>
+            </button>
+            <button class="node fraude" type="button" data-paso="b6">
+              <span class="kicker">Paso 8</span>
+              <b>6 Fraude se arma</b>
+              <small>Bloom, Count-Min y exactos.</small>
+            </button>
+            <button class="node reco" type="button" data-paso="b7">
+              <span class="kicker">Paso 7</span>
+              <b>7 HNSW se arma</b>
+              <small>Índice de 14 dimensiones.</small>
+            </button>
+            <button class="node cocompra" type="button" data-paso="b8">
+              <span class="kicker">Paso 9</span>
+              <b>8 Grafo se arma</b>
+              <small>Co-compra del histórico.</small>
+            </button>
+            <button class="node servicio" type="button" data-paso="b9">
+              <span class="kicker">Paso 10</span>
+              <b>9 Trie se arma</b>
+              <small>Categoría y marca.</small>
+            </button>
+          </div>
+          <div class="lane-label" style="margin-top:16px">Cierre · Cuando las ramas ya terminaron</div>
+          <div class="fase-grid" style="margin-top:8px">
+            <button class="node cierre" type="button" data-paso="c1">
+              <span class="kicker">Paso 17</span>
+              <b>1 Búsqueda binaria</b>
+              <small>Comprueba un product_id.</small>
+            </button>
+            <button class="node cierre" type="button" data-paso="c4">
+              <span class="kicker">Paso 18</span>
+              <b>4 Rango de precios</b>
+              <small>Consulta el B+Tree.</small>
+            </button>
+            <button class="node cierre" type="button" data-paso="c5">
+              <span class="kicker">Paso 19</span>
+              <b>5 KD-Tree y KNN</b>
+              <small>Precio y popularidad.</small>
+            </button>
+            <button class="node cierre" type="button" data-paso="c8">
+              <span class="kicker">Paso 20</span>
+              <b>8 PageRank y Louvain</b>
+              <small>Ranking y comunidades.</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="fase-box c">
+          <div class="lane-label">Fase C · Pipeline con ramas</div>
+          <p class="source" style="margin-top:0">Empieza en la caja 0 Cola FIFO.</p>
+          <button class="node entrada" type="button" data-paso="fifo">
+            <span class="kicker">Paso 11</span>
+            <b>0 Cola FIFO</b>
+            <small>Entran por la izquierda. Sale el primero por la derecha.</small>
+            <span class="mini">
+              <span class="mini-lab">entra</span>
+              <span class="celda">E3<small>último</small></span>
+              <span class="celda">E2<small>&nbsp;</small></span>
+              <span class="celda marca">E1<small>primero</small></span>
+              <span class="mini-lab sale">sale</span>
+            </span>
+          </button>
+          <div class="arrow-row">↓</div>
+          <button class="node nucleo" type="button" data-paso="heap">
+            <span class="kicker">Paso 12</span>
+            <b>2 Min-heap</b>
+            <small>La cola entregó E1, luego E2, luego E3.</small>
+            <span class="mini">
+              <span class="mini-lab sale">sale</span>
+              <span class="celda marca">E2<small>pri 1</small></span>
+              <span class="celda">E1<small>pri 6</small></span>
+              <span class="celda">E3<small>pri 6</small></span>
+            </span>
+          </button>
+          <div class="arrow-row">↓</div>
+          <button class="node nucleo" type="button" data-paso="lookup">
+            <span class="kicker">Paso 13</span>
+            <b>3 Lookup</b>
+            <small>Hash, LRU y matriz dispersa. Cada evento que sale del heap.</small>
+          </button>
+          <div class="arrow-row">↓</div>
+          <button class="node orq" type="button" data-paso="orq">
+            <span class="kicker">Paso 14</span>
+            <b>Orquestador</b>
+            <small>Abre una sola rama según el tipo de evento.</small>
+          </button>
+          <div class="arrow-row">vista o carrito ↙ &nbsp;&nbsp; compra ↓ &nbsp;&nbsp; si la compra sigue →</div>
+          <div class="row">
+            <button class="node reco" type="button" data-paso="reco">
+              <span class="kicker">Paso 15a</span>
+              <b>7 Recomendación</b>
+              <small>Vista o carrito. HNSW, top 5.</small>
+            </button>
+            <button class="node fraude" type="button" data-paso="fraude">
+              <span class="kicker">Paso 15b</span>
+              <b>6 Fraude</b>
+              <small>Compra. Tres decisiones.</small>
+            </button>
+            <button class="node cocompra" type="button" data-paso="cocompra">
+              <span class="kicker">Paso 16</span>
+              <b>8 Co-compra</b>
+              <small>Si la compra sigue. Suma aristas.</small>
+            </button>
+          </div>
+          <div class="arrow-row">↓ las tres salidas llegan al servicio</div>
+          <button class="node servicio" type="button" data-paso="servicio">
+            <span class="kicker">Paso 21</span>
+            <b>9 Servicio y dashboard</b>
+            <small>Recibe las tres ramas.</small>
+          </button>
+        </div>
+      </div>
+
       <div class="legend">
-        <span><i class="swatch" style="background:var(--blue)"></i>Núcleo 0–5</span>
+        <span><i class="swatch" style="background:var(--blue)"></i>Núcleo del recorrido</span>
         <span><i class="swatch" style="background:var(--green)"></i>Recomendación</span>
         <span><i class="swatch" style="background:var(--rose)"></i>Fraude</span>
         <span><i class="swatch" style="background:var(--amber)"></i>Co-compra</span>
-        <span><i class="swatch" style="background:var(--slate)"></i>Servicio</span>
+        <span><i class="swatch" style="background:var(--slate)"></i>Servicio y cierre</span>
       </div>
+      <p class="source">
+        El tiempo va de la fase A hacia abajo. La fase B termina antes de que el 40&nbsp;% entre a la cola:
+        en el dibujo están al lado, en el reloj van una después de la otra. En la fase B, HNSW es el paso 7
+        y Fraude el paso 8: el dibujo los deja en la misma fila.
+      </p>
       <div class="callout">
         <strong>Dos grafos distintos</strong>
-        El grafo de sesión une productos que aparecen juntos en la misma visita (vista, carrito o compra) y alimenta cuatro de las cinco recomendaciones.
-        El grafo de co-compra solo une productos comprados en la misma sesión, y solo si la compra no fue bloqueada. PageRank y Louvain corren sobre este segundo grafo.
-        MinHash + LSH pertenece a la etapa 7 y se mide en el benchmark; la recomendación viva usa HNSW y el grafo de sesión.
+        El grafo de sesión une productos que aparecen juntos en la misma visita y alimenta cuatro de las cinco recomendaciones.
+        Se arma justo antes del HNSW, en el histórico. El grafo de co-compra solo une productos comprados en la misma sesión,
+        y solo si la compra no fue bloqueada. PageRank y Louvain corren sobre este segundo grafo, en el cierre.
+        MinHash + LSH pertenece a la etapa 7 y se mide en el benchmark; queda fuera de este dibujo.
       </div>
     </section>
 
     <section id="etapas">
       <h2>Etapa por etapa</h2>
+      <p class="lede">
+        El orden es el del flujo. El paso 1 es la lectura. La etapa 0 del enunciado aparece en el paso 11,
+        cuando el 40&nbsp;% entra a la cola. Los pasos 15a y 15b son dos caminos, y el evento toma uno.
+      </p>
       <div class="pills" id="filtros">
-        <button class="pill is-on" type="button" data-filtro="todas">Todas</button>
-        <button class="pill" type="button" data-filtro="base">Base 0–5</button>
-        <button class="pill" type="button" data-filtro="fija">Fijas 6–8</button>
-        <button class="pill" type="button" data-filtro="servicio">Servicio</button>
+        <button class="pill is-on" type="button" data-filtro="todas">Todo el recorrido</button>
+        <button class="pill" type="button" data-filtro="A">Fase A · pasos 1–4</button>
+        <button class="pill" type="button" data-filtro="B">Fase B · pasos 5–10</button>
+        <button class="pill" type="button" data-filtro="C">Fase C · pasos 11–16 y 21</button>
+        <button class="pill" type="button" data-filtro="cierre">Cierre · pasos 17–20</button>
       </div>
       <div class="panel" style="overflow-x:auto">
         <table>
           <thead>
             <tr>
-              <th>Etapa</th><th>Bloque</th><th>Nombre</th><th>Algoritmo en el notebook</th><th>Cuándo corre</th>
+              <th>Paso</th><th>Fase</th><th>Caja del dibujo</th><th>Algoritmo</th><th>Qué ocurre</th><th>Etapa del enunciado</th>
             </tr>
           </thead>
           <tbody id="tabla-etapas"></tbody>
@@ -344,43 +511,43 @@
       </div>
       <div class="panel" id="detalle" style="margin-top:14px"></div>
 
-      <h3 style="margin-top:28px">Familias que el enunciado obliga a comparar</h3>
-      <p class="lede">Cada familia avanzada se contrasta con una alternativa exacta o más simple. Esta es la selección que quedó en el notebook.</p>
+      <h3 style="margin-top:28px">Familias del bloque de investigación</h3>
+      <p class="lede">El enunciado obliga a comparar cada familia avanzada con una alternativa exacta o más simple. Esta es la selección que quedó en el notebook.</p>
       <div class="panel" style="overflow-x:auto; margin-top:10px">
         <table>
           <thead>
-            <tr><th>Familia</th><th>Selección</th><th>Comparación obligatoria</th><th>Dónde quedó</th></tr>
+            <tr><th>Familia</th><th>Selección del documento que se usó</th><th>Comparación obligatoria</th><th>Dónde quedó</th></tr>
           </thead>
           <tbody>
             <tr>
               <td>Filtrado probabilístico</td>
               <td>Bloom Filter + Count-Min Sketch</td>
               <td>Hash set exacto: tiempo, memoria y falsos positivos</td>
-              <td>El bloqueo usa el conjunto exacto. El benchmark reporta falsos positivos y error de frecuencia.</td>
+              <td>Implementada. El bloqueo usa el conjunto exacto. El benchmark reporta falsos positivos y error de frecuencia.</td>
             </tr>
             <tr>
               <td>Similitud de conjuntos</td>
               <td>MinHash + LSH (Jaccard)</td>
               <td>Fuerza bruta: tiempo, memoria y calidad</td>
-              <td>Está en el benchmark, con recall frente a Jaccard exacto (umbral 0,05). No entra en la recomendación viva.</td>
+              <td>Implementada en el benchmark, con recall frente a Jaccard exacto (umbral 0,05). Queda fuera del dibujo.</td>
             </tr>
             <tr>
               <td>ANN vectorial</td>
               <td>HNSW (L2, 14 dimensiones)</td>
-              <td>KNN exacto: tiempo, recall@K y memoria</td>
-              <td><code>knn_exacto</code> es la línea base del recall. IVF y los árboles métricos no se usan.</td>
+              <td>KNN exacto y fuerza bruta: tiempo, recall@K y memoria</td>
+              <td>Implementada. <code>knn_exacto</code> es la línea base del recall. IVF y los árboles métricos quedan fuera.</td>
             </tr>
             <tr>
               <td>Ranking de influencia</td>
               <td>PageRank ponderado</td>
               <td>Ranking por grado o por frecuencia</td>
-              <td>El top 10 por grado ponderado se contrasta con el top 10 de PageRank.</td>
+              <td>Implementada. El top 10 por grado ponderado se contrasta con el top 10 de PageRank.</td>
             </tr>
             <tr>
               <td>Comunidades</td>
               <td>Louvain</td>
               <td>Alternativa más simple: modularidad, tiempo y estabilidad</td>
-              <td>Si Louvain falla, el respaldo son las componentes conexas. Label Propagation, Girvan-Newman y Leiden no se usan.</td>
+              <td>Louvain y su modularidad están en el cierre. El respaldo son las componentes conexas.</td>
             </tr>
           </tbody>
         </table>
@@ -391,16 +558,16 @@
         <table>
           <thead><tr><th>Punto de elección</th><th>Opción tomada</th><th>Opción que queda fuera</th></tr></thead>
           <tbody>
-            <tr><td>Etapa 0</td><td>Cola FIFO</td><td>Lista enlazada</td></tr>
-            <tr><td>Etapa 5</td><td>KD-Tree y KNN exacto</td><td>R-Tree</td></tr>
+            <tr><td>Etapa 0, caja 0 Cola FIFO</td><td>Cola FIFO</td><td>Lista enlazada</td></tr>
+            <tr><td>Etapa 5, caja de cierre</td><td>KD-Tree y KNN exacto</td><td>R-Tree</td></tr>
             <tr><td>Etapa 7, conjuntos</td><td>MinHash + LSH</td><td>SimHash</td></tr>
-            <tr><td>Etapa 7, vectores</td><td>HNSW</td><td>IVF, M-Tree y VP-Tree</td></tr>
-            <tr><td>Etapa 8, influencia</td><td>PageRank</td><td>Personalized PageRank</td></tr>
+            <tr><td>Etapa 7, caja 7 Recomendación</td><td>HNSW</td><td>IVF, M-Tree y VP-Tree</td></tr>
+            <tr><td>Etapa 8, caja de cierre</td><td>PageRank</td><td>Personalized PageRank</td></tr>
             <tr><td>Etapa 8, comunidades</td><td>Louvain</td><td>Label Propagation, Girvan-Newman y Leiden</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="source">La cuota 1 de HNSW y 4 del grafo de sesión es una regla del notebook, no una alternativa de la arquitectura obligatoria.</p>
+      <p class="source">El híbrido de recomendación (cuota 1 de HNSW y 4 del grafo de sesión) es una regla del notebook, dentro de la caja 7 Recomendación.</p>
     </section>
 
     <section id="ficha">
@@ -618,7 +785,7 @@
       <p class="lede">La salida observable tiene seis pestañas. Cada una lee una estructura distinta.</p>
       <div class="grid-3" style="margin-top:12px">
         <div class="box"><b>1. Buscar producto</b><span>Por ID: hash y caché LRU de 256 entradas. Por texto: Trie de «categoría marca» y «marca categoría», recorrido BFS, hasta 5 productos. Ejemplos: <code>samsung</code>, <code>apple</code>, <code>electronics.smartphone</code>.</span></div>
-        <div class="box"><b>2. Precios</b><span>Rango sobre el B+Tree de orden 32. La clave es el precio y el valor es el product_id. El árbol vive en memoria: es la interfaz de un índice de disco y no escribe páginas.</span></div>
+        <div class="box"><b>2. Precios</b><span>Rango sobre el B+Tree de orden 32. La clave es el precio y el valor es el product_id. El árbol vive en memoria: el código lo describe como la interfaz de un índice de disco y las páginas quedan en memoria.</span></div>
         <div class="box"><b>3. Recomendar</b><span>Top-5 híbrido para un product_id: 1 candidato de HNSW (L2, 14 dimensiones, M = 16, ef_construction = 80, ef = 40) y 4 vecinos del grafo de sesión.</span></div>
         <div class="box"><b>4. Simular evento</b><span>Vista o compra de un producto, con la traza de las ramas. Si se compran dos productos en la misma sesión de demo y la compra no se bloquea, el grafo de co-compra suma una arista.</span></div>
         <div class="box"><b>5. Panel y alertas</b><span>Ventas, consultas, alertas y bloqueos del stream. Revisar es la alerta probabilística. Bloquear es la confirmación exacta.</span></div>
@@ -778,8 +945,8 @@
       <h2>Recorrido para la presentación</h2>
       <p class="lede">Ocho láminas. Cada una apunta a una sección de esta página. Las figuras de pruebas entran en la lámina 7 solo después de la corrida con octubre.</p>
       <ol class="slides">
-        <li><b>El problema en una frase.</b> Un evento de REES46 entra por un núcleo y sale por recomendación o por fraude. Corte 60/40. Archivo único: octubre 2019.</li>
-        <li><b>El diagrama de ramas.</b> Mostrar el pipeline de esta página. Nombrar el algoritmo de cada bloque, no la familia genérica.</li>
+        <li><b>El problema en una frase.</b> El recorrido empieza en la fase A, sobre el archivo entero. El 60&nbsp;% arma la fase B. El 40&nbsp;% entra a la cola en la fase C y sale por una sola rama. Archivo único: octubre 2019.</li>
+        <li><b>El diagrama de ramas.</b> Mostrar las fases A, B, C y el cierre. La etapa 0 es la cola, en el paso 11. Nombrar el algoritmo de cada caja.</li>
         <li><b>Un producto concreto.</b> Xiaomi 1005161. Primera vista escribe la ficha. La siguiente solo suma popularidad. La compra deja el precio quieto y cambia de rama.</li>
         <li><b>Fraude.</b> Tres desenlaces: permitir, revisar, bloquear. La señal de Bloom o Count-Min abre la revisión. El conjunto exacto es el que bloquea, y esa compra no crea aristas.</li>
         <li><b>Recomendación híbrida.</b> Top-5 = 1 de HNSW (14 dimensiones) + 4 del grafo de sesión. MinHash queda en el benchmark. El KD-Tree valida el enunciado y no atiende la consulta viva.</li>
@@ -807,158 +974,335 @@
   <script>
     const ETAPAS = [
       { id: "0", numero: "0", bloque: "S1", grupo: "base", fija: false, nombre: "Ingesta y buffer",
-        corto: "Cola FIFO (deque)", cuando: "Una vez, al armar el stream vivo",
+        corto: "Cola FIFO (deque)",
+        fase: "C · Pipeline con ramas",
+        caja: "0 Cola FIFO",
+        siguiente: "2 Min-heap, la caja de abajo",
+        cuando: "Una pasada, al armar el 40 % vivo",
         enunciado: "Cola FIFO o lista enlazada para el stream de entrada.",
         elegido: "Cola FIFO con collections.deque.",
         noElegido: "Lista enlazada.",
-        donde: "leer_eventos lee el CSV por bloques de hasta 250.000 filas. ejecutar_pipeline encola los índices del 40 % vivo, guarda recibidos_fifo y vacía la cola al pasarlos al heap.",
-        rol: "El buffer recibe el tramo que no se usó para entrenar y lo entrega, en orden de llegada, a la cola de prioridades.",
-        nota: "El histórico (60 %) no pasa por esta cola: construye almacén, modelos, fraude y co-compra. Solo el 40 % restante es el stream." },
+        donde: "ejecutar_pipeline arma cola = deque con los índices desde el corte del 60 % hasta el final. Recorre esa cola una vez y la vacía. El heappush es la caja 2.",
+        rol: "Primera caja del recuadro Pipeline con ramas. Entra el 40 % que bajó del corte. Cada evento entra por la izquierda y el primero sale por la derecha. Esa salida alimenta la caja 2.",
+        nota: "El 60 % baja a la fase B y se queda en las cajas de modelos. La caja 1 Limpieza ya corrió en la fase A, sobre el archivo entero." },
       { id: "1", numero: "1", bloque: "S2", grupo: "base", fija: false, nombre: "Preprocesamiento por lotes",
-        corto: "Merge sort + búsqueda binaria", cuando: "Ordenación: una vez sobre el lote. Búsqueda: una consulta de verificación",
+        corto: "Merge sort + búsqueda binaria",
+        fase: "A · Antes del corte, y la franja de cierre",
+        caja: "1 Limpieza y 1 Búsqueda binaria",
+        siguiente: "Etiqueta de prioridad y después el corte. El 40 % baja a 0 Cola FIFO",
+        cuando: "Limpieza: una vez, sobre el archivo entero. Búsqueda: una comprobación al cierre",
         enunciado: "Ordenación eficiente y búsqueda binaria para limpiar y deduplicar.",
         elegido: "Merge sort ascendente. Por encima de 100.000 filas, los bloques ya ordenados se mezclan con un heap de k vías. La búsqueda binaria es iterativa.",
         noElegido: "Quicksort, heapsort o timsort propios.",
-        donde: "merge_sort, mezcla_k y ordenar_indices ordenan por event_time dentro de preparar_eventos. busqueda_binaria busca un product_id en el catálogo ordenado al cerrar ejecutar_pipeline.",
-        rol: "Deja el lote en orden temporal y deja disponible una búsqueda logarítmica sobre los identificadores del catálogo.",
-        nota: "La deduplicación de (event_time, event_type, product_id, user_id, user_session) la hace drop_duplicates antes del merge sort. La búsqueda binaria no elimina duplicados." },
+        donde: "merge_sort, mezcla_k y ordenar_indices ordenan por event_time dentro de preparar_eventos, antes del corte. busqueda_binaria busca un product_id en el catálogo al cerrar ejecutar_pipeline.",
+        rol: "La caja 1 Limpieza está en la fase A, a la izquierda del corte. Ordena el archivo completo por hora. La caja 1 Búsqueda binaria está en la franja de cierre y comprueba un identificador del catálogo.",
+        nota: "drop_duplicates quita la clave (event_time, event_type, product_id, user_id, user_session) antes del merge sort. La búsqueda binaria comprueba el catálogo ya ordenado." },
       { id: "2", numero: "2", bloque: "S3", grupo: "base", fija: false, nombre: "Cola con prioridades",
-        corto: "Heap binario (heapq)", cuando: "Cada evento del stream vivo",
+        corto: "Heap binario (heapq)",
+        fase: "C · Pipeline con ramas",
+        caja: "2 Min-heap",
+        siguiente: "3 Lookup",
+        cuando: "Cada evento del 40 % vivo",
         enunciado: "Heap para priorizar eventos.",
         elegido: "Heap binario mínimo de heapq. La clave es (prioridad, orden de llegada), así que un empate respeta el FIFO.",
         noElegido: "Lista ordenada o Fibonacci heap.",
-        donde: "ejecutar_pipeline hace heappush de cada índice del stream y heappop hasta vaciar el heap. Las prioridades se asignan en preparar_eventos.",
-        rol: "Atiende primero fraude y entregas urgentes, y deja al final las vistas.",
+        donde: "ejecutar_pipeline hace heappush de cada índice en el orden en que la cola lo entrega, y heappop hasta vaciar el heap. La etiqueta 1 a 6 se escribió en la fase A, en preparar_eventos.",
+        rol: "Segunda caja del pipeline con ramas. Recibe los eventos en el orden de la cola y saca primero la prioridad menor: 1 fraude, al final 6 vista. Si dos empatan, sale antes el que la cola entregó primero.",
         nota: "Prioridad 1 Fraude, 2 Express, 3 Estándar, 4 Programada, 5 Carrito, 6 Vista. Express, estándar y programada salen de una huella módulo 5, no del dataset original." },
       { id: "3", numero: "3", bloque: "S4", grupo: "base", fija: false, nombre: "Almacenamiento, lookup y caché",
-        corto: "Hash + matriz dispersa + LRU", cuando: "Cada evento, histórico y stream",
+        corto: "Hash + matriz dispersa + LRU",
+        fase: "B · Histórico, y C · Lookup",
+        caja: "3 Almacén se llena y 3 Lookup",
+        siguiente: "Orquestador, que abre una sola rama",
+        cuando: "Se llena con el histórico. Se consulta en cada evento del stream",
         enunciado: "Hash table, matriz dispersa y LRU cuando aplique.",
         elegido: "Las tres. Hash table: dict catalogo por product_id. Matriz dispersa: dict de dicts usuario → producto en interacciones. LRU: OrderedDict de 256 entradas.",
         noElegido: "No queda familia de esta etapa sin implementar.",
-        donde: "Clase Almacen. consultar devuelve CACHE si el LRU acierta y HASH si lee el diccionario. memoria_dispersa estima la matriz densa (usuarios × productos × 8 bytes) frente a la dispersa (pares × 32 bytes).",
-        rol: "Recupera categoría, marca, precio, disponibilidad y popularidad, y guarda las interacciones usuario-producto sin materializar la matriz completa.",
-        nota: "La matriz dispersa no usa una clase de scipy. Es la representación por pares, y la comparación de memoria es una estimación, no una medición de un arreglo denso real." },
+        donde: "Clase Almacen. El 60 % la llena en la fase B. Cada evento que sale del heap vuelve a pasar por actualizar, en la caja 3 Lookup. consultar devuelve CACHE si el LRU acierta y HASH si lee el diccionario.",
+        rol: "Dos cajas con el mismo número. En la fase B el 60 % llena catálogo, interacciones y LRU. En la fase C, la caja 3 Lookup atiende cada evento que acaba de salir del heap.",
+        nota: "La matriz dispersa es la representación por pares. memoria_dispersa estima la matriz densa (usuarios × productos × 8 bytes) frente a la dispersa (pares × 32 bytes)." },
       { id: "4", numero: "4", bloque: "S5", grupo: "base", fija: false, nombre: "Indexación principal",
-        corto: "B+Tree (orden 32)", cuando: "Inserción al ver un producto nuevo. Consulta por rango en el servicio",
+        corto: "B+Tree (orden 32)",
+        fase: "B · Histórico, y la franja de cierre",
+        caja: "4 B+Tree se llena y 4 Rango de precios",
+        siguiente: "9 Servicio muestra el rango. El cierre lo comprueba",
+        cuando: "Inserción al ver un producto nuevo en el histórico. Rango al cierre y en el servicio",
         enunciado: "B+Tree para un índice de disco.",
         elegido: "B+Tree de orden 32. Inserción con división de hoja y de nodo interno, y búsqueda por rango recorriendo el enlace entre hojas.",
         noElegido: "Árbol B clásico o índice hash.",
-        donde: "ArbolBPlus, guardado en almacen.precios. La clave es el precio y el valor es el product_id. buscar_rango alimenta la pestaña de precios y una consulta de verificación al cierre.",
-        rol: "Resuelve consultas puntuales y por rango de precio sin recorrer el catálogo.",
-        nota: "El árbol vive en memoria. El propio código lo describe como la interfaz de un índice de disco: no escribe páginas a disco." },
+        donde: "ArbolBPlus, guardado en almacen.precios. La clave es el precio y el valor es el product_id. buscar_rango alimenta la pestaña de precios y la caja de cierre.",
+        rol: "La caja 4 B+Tree se llena con el 60 %. La caja 4 Rango de precios, en la franja de cierre, consulta ese índice. El servicio de la fase C muestra ese rango.",
+        nota: "El árbol vive en memoria. El código lo describe como la interfaz de un índice de disco: las páginas quedan en memoria." },
       { id: "5", numero: "5", bloque: "S6", grupo: "base", fija: false, nombre: "Índice multidimensional y KNN exacto",
-        corto: "KD-Tree + KNN exacto", cuando: "Una validación al cerrar el pipeline",
+        corto: "KD-Tree + KNN exacto",
+        fase: "Cierre",
+        caja: "5 KD-Tree y KNN",
+        siguiente: "Se queda en la franja de cierre, debajo de la fase B",
+        cuando: "Una comprobación, cuando las ramas ya terminaron",
         enunciado: "KD-Tree o R-Tree según el escenario. KNN exacto como línea base.",
         elegido: "KD-Tree de 2 dimensiones (precio, popularidad), k = 5, sobre los primeros 3.000 productos. La línea base es la distancia euclidiana al cuadrado por fuerza bruta.",
         noElegido: "R-Tree.",
-        donde: "NodoKD, construir_kd, buscar_kd y validar_kd. validar_kd exige que las distancias del árbol coincidan con el KNN exacto. knn_exacto también mide el recall de HNSW.",
-        rol: "Comprueba el índice multidimensional del enunciado. La recomendación en vivo no consulta este árbol: usa HNSW.",
-        nota: "El espacio de la recomendación es de 14 dimensiones (precio, popularidad, categoría y marca). El KD-Tree solo indexa precio y popularidad." },
+        donde: "NodoKD, construir_kd, buscar_kd y validar_kd, al cerrar ejecutar_pipeline. validar_kd exige que las distancias del árbol coincidan con el KNN exacto.",
+        rol: "Una sola caja, en la franja de cierre. Comprueba el índice de precio y popularidad contra el KNN exacto. La rama de recomendación consulta HNSW, la caja 7.",
+        nota: "El espacio de la recomendación es de 14 dimensiones (precio, popularidad, categoría y marca). El KD-Tree indexa precio y popularidad." },
       { id: "6", numero: "6", bloque: "S7", grupo: "fija", fija: true, nombre: "Filtrado probabilístico",
-        corto: "Bloom Filter + Count-Min Sketch", cuando: "Construcción en el histórico. Consulta en cada compra del stream",
+        corto: "Bloom Filter + Count-Min Sketch",
+        fase: "B · Histórico, y C · Rama compra",
+        caja: "6 Fraude se arma y 6 Fraude",
+        siguiente: "8 Co-compra, si la compra sigue",
+        cuando: "Se arma con el histórico. Se consulta en cada compra del stream",
         enunciado: "Bloom Filter y Count-Min Sketch. Un positivo del Bloom puede ser falso y debe verificarse si la decisión es crítica. El Count-Min puede sobreestimar.",
         elegido: "Bloom Filter con error objetivo 0,01 y hashes SHA-256, más Count-Min Sketch de ancho 4.096 y profundidad 5. El bloqueo exige confirmación en un conjunto exacto.",
         noElegido: "Ninguna: el enunciado pide las dos estructuras.",
-        donde: "BloomFilter, CountMinSketch, construir_fraude y decidir_fraude. El Bloom guarda device_id y payment_id confirmados o vigilados. El sketch cuenta user_id|hora en el histórico cerrado. Umbral de intensidad: 8.",
-        rol: "Una compra puede terminar en permitir, revisar o bloquear. Revisar es la alerta probabilística. Bloquear solo ocurre si el conjunto exacto confirma el dispositivo, el pago, o la etiqueta de fraude.",
-        nota: "La comparación obligatoria con el hash set está en el conjunto exactos y en los benchmarks bloom_vs_set (tasa de falsos positivos) y count_min_vs_exacto (error absoluto medio)." },
+        donde: "construir_fraude arma Bloom, Count-Min y el conjunto exacto con el 60 %. decidir_fraude corre en la rama compra, sobre cada purchase que sale del heap.",
+        rol: "La caja de la fase B arma los filtros. La caja 6 Fraude del pipeline con ramas atiende la compra que el orquestador le manda. Puede terminar en permitir, revisar o bloquear.",
+        nota: "Revisar es la alerta probabilística. Bloquear ocurre si el conjunto exacto confirma el dispositivo, el pago o la etiqueta de fraude. La comparación con el hash set está en bloom_vs_set y count_min_vs_exacto." },
       { id: "7", numero: "7", bloque: "S7", grupo: "fija", fija: true, nombre: "Similitud aproximada",
-        corto: "MinHash + LSH y HNSW", cuando: "HNSW: índice en el histórico y consulta por vista o carrito. MinHash: solo en el benchmark",
+        corto: "MinHash + LSH y HNSW",
+        fase: "B · Histórico, y C · Rama vista o carrito",
+        caja: "7 HNSW se arma y 7 Recomendación",
+        siguiente: "9 Servicio",
+        cuando: "HNSW: índice en el histórico y consulta por vista o carrito. MinHash: en el benchmark",
         enunciado: "Elegir MinHash + LSH o SimHash, y además HNSW, IVF o M-Tree / VP-Tree.",
         elegido: "MinHash + LSH para Jaccard (32 permutaciones, 8 bandas) y HNSW en L2 con hnswlib (M = 16, ef_construction = 80, ef = 40). El vector tiene 14 dimensiones.",
         noElegido: "SimHash, IVF, M-Tree y VP-Tree.",
-        donde: "IndiceVectorial, candidatos_vector e hibrido en el flujo de vistas y carrito. MinHashLSH y benchmark_similitud comparan Jaccard aproximado contra Jaccard exacto. knn_exacto es la línea base de HNSW.",
-        rol: "La recomendación viva es un Top-5 híbrido: 1 candidato de HNSW y 4 vecinos del grafo de sesión. MinHash no participa en esa recomendación.",
-        nota: "Si hnswlib no importa, IndiceVectorial cae a KNN exacto y el backend queda marcado como knn_exacto. El grafo de sesión es co-ocurrencia de productos en la misma sesión; no es el grafo de co-compra de la etapa 8." },
+        donde: "construir_indice_productos arma HNSW con el 60 %. hibrido corre en la rama de vista o carrito. MinHashLSH vive en el benchmark, fuera de este dibujo.",
+        rol: "La caja 7 HNSW se arma en la fase B. La caja 7 Recomendación es la rama izquierda del orquestador: vista o carrito. Devuelve un Top-5 híbrido, 1 candidato de HNSW y 4 del grafo de sesión.",
+        nota: "Si hnswlib no importa, IndiceVectorial cae a KNN exacto. El grafo de sesión es co-ocurrencia en la misma sesión. El grafo de co-compra es la caja 8." },
       { id: "8", numero: "8", bloque: "S8–S9", grupo: "fija", fija: true, nombre: "Grafo de dominio",
-        corto: "PageRank + Louvain", cuando: "Grafo: histórico y cada compra permitida. PageRank y Louvain: al cerrar",
+        corto: "PageRank + Louvain",
+        fase: "B · Histórico, C · Rama compra, y cierre",
+        caja: "8 Grafo se arma, 8 Co-compra y 8 PageRank",
+        siguiente: "9 Servicio. PageRank y Louvain quedan en el cierre",
+        cuando: "Grafo: histórico y cada compra que sigue. PageRank y Louvain: al cerrar",
         enunciado: "PageRank o Personalized PageRank, y un algoritmo de comunidades: Louvain, Label Propagation, Girvan-Newman o Leiden.",
         elegido: "PageRank ponderado propio (damping 0,85, 30 iteraciones) y Louvain con modularidad. El grafo es no dirigido: nodo = producto, arista = co-compra en la misma sesión, peso = veces que coinciden.",
         noElegido: "Personalized PageRank, Label Propagation, Girvan-Newman y Leiden.",
-        donde: "construir_cocompra arma el grafo histórico con NetworkX. unir_compra agrega aristas de las compras del stream que no fueron bloqueadas. pagerank_propio y resumen_grafo calculan el ranking y las comunidades.",
-        rol: "Rankea productos influyentes para cross-selling y parte el grafo en comunidades de consumo. Una compra bloqueada no crea aristas.",
-        nota: "La comparación obligatoria con el ranking por grado está en resumen_grafo (top 10 por grado ponderado) y en pagerank_vs_grado (solape del top 10). Si Louvain falla, el respaldo son las componentes conexas." },
+        donde: "construir_cocompra arma el grafo con las compras del 60 %. unir_compra suma aristas de las compras del stream que la caja 6 dejó seguir. pagerank_propio y Louvain corren en la caja de cierre.",
+        rol: "Tres cajas. La fase B arma el grafo. La caja 8 Co-compra, a la derecha de Fraude, suma aristas si la compra sigue. La caja 8 PageRank y Louvain rankea y parte comunidades al cierre.",
+        nota: "Una compra bloqueada se queda en la caja 6. El top 10 por grado ponderado se contrasta con el top 10 de PageRank. Si Louvain falla, el respaldo son las componentes conexas." },
       { id: "9", numero: "9", bloque: "Transversal", grupo: "servicio", fija: false, nombre: "Servicio y visualización",
-        corto: "Trie + Top-K + dashboard", cuando: "Trie al construir el catálogo. Top-K y panel en la consulta del usuario",
+        corto: "Trie + Top-K + dashboard",
+        fase: "B · Histórico, y C · Salida",
+        caja: "9 Trie se arma y 9 Servicio",
+        siguiente: "Última caja del pipeline con ramas",
+        cuando: "Trie al construir el catálogo. Panel cuando el usuario consulta",
         enunciado: "Top-K, dashboard y Trie o autocompletado cuando aplique.",
         elegido: "Trie de prefijos, Top-K y un dashboard de seis pestañas. El autocompletado recorre el trie con BFS y devuelve hasta 5 productos.",
         noElegido: "No queda pieza de esta etapa sin implementar.",
-        donde: "Trie se llena con «categoría marca» y «marca categoría». hibrido devuelve k = 5. resumen_grafo publica el top 10 de PageRank y de grado. El dashboard está en la celda posterior a la traza.",
-        rol: "Es la salida observable: autocompletado, rango de precios, recomendaciones, simulación de un evento, alertas y el grafo.",
+        donde: "El trie se llena en la fase B con «categoría marca» y «marca categoría». La caja 9 Servicio recoge la recomendación, la decisión de fraude y la co-compra.",
+        rol: "La caja 9 Trie se arma con el histórico. La caja 9 Servicio es la salida del recuadro: recibe las tres ramas y muestra autocompletado, rango de precios, recomendaciones, alertas y grafo.",
         nota: "Buscar por ID usa el hash y el LRU. Buscar por texto usa el Trie. El rango de precios usa el B+Tree. Recomendar usa el híbrido 1+4." }
     ];
 
-    let filtro = "todas";
-    let etapaId = "0";
+    const PASOS = [
+      { id: "lectura", orden: "1", fase: "A", faseTexto: "Fase A · Archivo completo", caja: "Lectura", algoritmo: "Lectura secuencial por bloques",
+        ocurre: "Se lee el CSV por bloques. El archivo sigue entero: todavía no hay corte ni cola.", siguiente: "2 · 1 Limpieza" },
+      { id: "limpieza", orden: "2", fase: "A", faseTexto: "Fase A · Archivo completo", caja: "1 Limpieza", algoritmo: "Deduplicación y merge sort", etapaId: "1",
+        ocurre: "Quita vacíos y duplicados, y ordena todo el archivo por hora. Si el lote pasa de 100.000 filas, los bloques ya ordenados se mezclan con un heap de k vías.", siguiente: "3 · Etiqueta de prioridad" },
+      { id: "etiqueta", orden: "3", fase: "A", faseTexto: "Fase A · Archivo completo", caja: "Etiqueta de prioridad", algoritmo: "Regla de prioridad 1 a 6",
+        ocurre: "Escribe en cada fila un número del 1 al 6 según el tipo de evento y una huella módulo 5. El heap todavía no corre: esa etiqueta espera a la caja 2.", siguiente: "4 · Corte 60/40" },
+      { id: "corte", orden: "4", fase: "A", faseTexto: "Fase A · Archivo completo", caja: "Corte 60/40", algoritmo: "Corte por posición temporal",
+        ocurre: "Parte el lote ya ordenado: 60 % histórico y, dentro del resto, un corte al 70 %. El 40 % queda para la fase C.", siguiente: "5 · 3 Almacén se llena" },
+      { id: "b3", orden: "5", fase: "B", faseTexto: "Fase B · Histórico 60 %", caja: "3 Almacén se llena", algoritmo: "Hash table, matriz dispersa y LRU", etapaId: "3",
+        ocurre: "El 60 % llena catálogo, interacciones y LRU. Este tramo no entra a la cola.", siguiente: "6 · 4 B+Tree se llena" },
+      { id: "b4", orden: "6", fase: "B", faseTexto: "Fase B · Histórico 60 %", caja: "4 B+Tree se llena", algoritmo: "Inserción en B+Tree de orden 32", etapaId: "4",
+        ocurre: "En esa misma pasada, cada producto nuevo deja su precio en el B+Tree.", siguiente: "7 · 7 HNSW se arma" },
+      { id: "b7", orden: "7", fase: "B", faseTexto: "Fase B · Histórico 60 %", caja: "7 HNSW se arma", algoritmo: "HNSW en L2, 14 dimensiones", etapaId: "7",
+        ocurre: "Se arma el índice de 14 dimensiones. Justo antes queda el grafo de sesión por co-ocurrencia, que la recomendación va a consultar.", siguiente: "8 · 6 Fraude se arma" },
+      { id: "b6", orden: "8", fase: "B", faseTexto: "Fase B · Histórico 60 %", caja: "6 Fraude se arma", algoritmo: "Bloom Filter, Count-Min Sketch y conjunto exacto", etapaId: "6",
+        ocurre: "Esas tres estructuras aprenden con el histórico y quedan listas para las compras.", siguiente: "9 · 8 Grafo se arma" },
+      { id: "b8", orden: "9", fase: "B", faseTexto: "Fase B · Histórico 60 %", caja: "8 Grafo se arma", algoritmo: "Grafo ponderado de co-compra", etapaId: "8",
+        ocurre: "Las compras del 60 % arman el grafo: nodo producto, arista si coinciden en la sesión, peso igual a las veces.", siguiente: "10 · 9 Trie se arma" },
+      { id: "b9", orden: "10", fase: "B", faseTexto: "Fase B · Histórico 60 %", caja: "9 Trie se arma", algoritmo: "Inserción en Trie de prefijos", etapaId: "9",
+        ocurre: "El autocompletado se llena con categoría y marca. Aquí termina el histórico.", siguiente: "11 · 0 Cola FIFO" },
+      { id: "fifo", orden: "11", fase: "C", faseTexto: "Fase C · Pipeline con ramas", caja: "0 Cola FIFO", algoritmo: "Cola FIFO (deque)", etapaId: "0",
+        ocurre: "Ahora sí entra el 40 %. Los eventos entran por la izquierda y el primero sale por la derecha, hacia el heap.", siguiente: "12 · 2 Min-heap" },
+      { id: "heap", orden: "12", fase: "C", faseTexto: "Fase C · Pipeline con ramas", caja: "2 Min-heap", algoritmo: "Min-heap binario (heapq)", etapaId: "2",
+        ocurre: "Recibe el orden de la cola y saca primero la prioridad 1. La clave es (prioridad, orden de llegada): si dos empatan, sale antes el que la cola entregó primero.", siguiente: "13 · 3 Lookup" },
+      { id: "lookup", orden: "13", fase: "C", faseTexto: "Fase C · Pipeline con ramas", caja: "3 Lookup", algoritmo: "Consulta por hash, con LRU", etapaId: "3",
+        ocurre: "Cada evento que sale del heap consulta el almacén que llenó el paso 5. Si el LRU acierta, la respuesta sale de la caché.", siguiente: "14 · Orquestador" },
+      { id: "orq", orden: "14", fase: "C", faseTexto: "Fase C · Pipeline con ramas", caja: "Orquestador", algoritmo: "Despacho por tipo de evento",
+        ocurre: "Mira el tipo de evento y abre una sola rama: vista o carrito, o compra.", siguiente: "15a o 15b, según el tipo" },
+      { id: "reco", orden: "15a", fase: "C", faseTexto: "Fase C · Rama vista o carrito", caja: "7 Recomendación", algoritmo: "HNSW y grafo de sesión, top 5 híbrido", etapaId: "7",
+        ocurre: "Camino de una vista o un carrito. Toma 1 candidato del HNSW armado en el paso 7 y 4 vecinos del grafo de sesión.", siguiente: "21 · 9 Servicio" },
+      { id: "fraude", orden: "15b", fase: "C", faseTexto: "Fase C · Rama compra", caja: "6 Fraude", algoritmo: "Consulta Bloom, Count-Min y conjunto exacto", etapaId: "6",
+        ocurre: "Camino de una compra. Usa los filtros armados en el paso 8 y decide permitir, revisar o bloquear.", siguiente: "16 · 8 Co-compra, si la compra sigue" },
+      { id: "cocompra", orden: "16", fase: "C", faseTexto: "Fase C · Rama compra", caja: "8 Co-compra", algoritmo: "Inserción de aristas en el grafo", etapaId: "8",
+        ocurre: "Cuando el heap ya se vació, las compras que siguieron suman aristas al grafo del paso 9.", siguiente: "17 · 1 Búsqueda binaria" },
+      { id: "c1", orden: "17", fase: "cierre", faseTexto: "Cierre · Después de las ramas", caja: "1 Búsqueda binaria", algoritmo: "Búsqueda binaria iterativa", etapaId: "1",
+        ocurre: "Comprueba un product_id en el catálogo ya ordenado.", siguiente: "18 · 4 Rango de precios" },
+      { id: "c4", orden: "18", fase: "cierre", faseTexto: "Cierre · Después de las ramas", caja: "4 Rango de precios", algoritmo: "Búsqueda por rango en el B+Tree", etapaId: "4",
+        ocurre: "Recorre las hojas enlazadas del árbol que se llenó en el paso 6.", siguiente: "19 · 5 KD-Tree y KNN" },
+      { id: "c5", orden: "19", fase: "cierre", faseTexto: "Cierre · Después de las ramas", caja: "5 KD-Tree y KNN", algoritmo: "KD-Tree y KNN exacto", etapaId: "5",
+        ocurre: "El KD-Tree indexa precio y popularidad. El KNN exacto, por fuerza bruta, comprueba que las distancias coincidan.", siguiente: "20 · 8 PageRank y Louvain" },
+      { id: "c8", orden: "20", fase: "cierre", faseTexto: "Cierre · Después de las ramas", caja: "8 PageRank y Louvain", algoritmo: "PageRank ponderado y Louvain", etapaId: "8",
+        ocurre: "PageRank rankea productos con damping 0,85. Louvain parte el grafo por modularidad.", siguiente: "21 · 9 Servicio" },
+      { id: "servicio", orden: "21", fase: "C", faseTexto: "Fase C · Salida", caja: "9 Servicio y dashboard", algoritmo: "Trie con BFS y Top-K", etapaId: "9",
+        ocurre: "El autocompletado recorre el trie con BFS y devuelve hasta 5 productos. El panel muestra rango, recomendaciones, alertas y grafo.", siguiente: "Fin del recorrido" }
+    ];
 
-    function visibles() {
-      return ETAPAS.filter((e) => filtro === "todas" || e.grupo === filtro);
+    let franja = "todas";
+    let pasoId = "lectura";
+
+    function pasosVisibles() {
+      return PASOS.filter((paso) => franja === "todas" || paso.fase === franja);
     }
 
     function renderTabla() {
       const body = document.getElementById("tabla-etapas");
-      body.innerHTML = visibles().map((e) => `
-        <tr class="${e.fija ? "fija" : ""} ${e.id === etapaId ? "is-selected" : ""}">
-          <td><button class="linkish" type="button" data-etapa="${e.id}">${e.numero}</button></td>
-          <td>${e.bloque}</td>
-          <td>${e.fija ? e.nombre + " [FIJA]" : e.nombre}</td>
-          <td>${e.corto}</td>
-          <td>${e.cuando}</td>
-        </tr>`).join("");
+      body.replaceChildren();
+      pasosVisibles().forEach((paso) => {
+        const oficial = paso.etapaId ? ETAPAS.find((item) => item.id === paso.etapaId) : null;
+        const tr = document.createElement("tr");
+        if (paso.id === pasoId) tr.className = "is-selected";
+        else if (oficial && oficial.fija) tr.className = "fija";
+        const tdPaso = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "linkish";
+        btn.dataset.paso = paso.id;
+        btn.textContent = paso.orden;
+        tdPaso.append(btn);
+        const celdas = [
+          paso.faseTexto,
+          paso.caja,
+          paso.algoritmo,
+          paso.ocurre,
+          oficial ? "Etapa " + oficial.numero + " · " + oficial.nombre : "Caja del recorrido"
+        ];
+        tr.append(tdPaso);
+        celdas.forEach((valor) => {
+          const td = document.createElement("td");
+          td.textContent = valor;
+          tr.append(td);
+        });
+        body.append(tr);
+      });
+    }
+
+    function parrafo(clase, titulo, cuerpo) {
+      const wrap = document.createElement("div");
+      if (clase) wrap.className = clase;
+      if (titulo) {
+        const k = document.createElement("p");
+        k.className = "k";
+        k.textContent = titulo;
+        wrap.append(k);
+      }
+      if (cuerpo) {
+        const p = document.createElement("p");
+        p.textContent = cuerpo;
+        wrap.append(p);
+      }
+      return wrap;
     }
 
     function renderDetalle() {
-      const e = ETAPAS.find((x) => x.id === etapaId) || visibles()[0];
-      document.getElementById("detalle").innerHTML = `
-        <p class="k">Etapa ${e.numero} · ${e.bloque}${e.fija ? " · FIJA" : ""}</p>
-        <h3>${e.nombre}</h3>
-        <p>${e.rol}</p>
-        <div class="grid-2">
-          <div><p class="k">Enunciado</p><p>${e.enunciado}</p></div>
-          <div><p class="k">En el notebook</p><p><b>${e.elegido}</b></p><p class="source">${e.donde}</p></div>
-        </div>
-        <div class="grid-2" style="margin-top:8px">
-          <div><p class="k">Cuándo corre</p><p>${e.cuando}</p></div>
-          <div><p class="k">No se usó</p><p>${e.noElegido}</p></div>
-        </div>
-        <div class="callout"><strong>Lectura para el informe</strong>${e.nota}</div>`;
-      document.querySelectorAll(".node[data-etapa]").forEach((n) => {
-        const id = n.getAttribute("data-etapa");
-        const on = id === etapaId || (id === "3" && (etapaId === "3" || etapaId === "4" || etapaId === "5"));
-        n.classList.toggle("is-on", on);
+      const seleccion = PASOS.find((paso) => paso.id === pasoId) || pasosVisibles()[0];
+      const etapa = seleccion.etapaId ? ETAPAS.find((item) => item.id === seleccion.etapaId) : null;
+      const detalle = document.getElementById("detalle");
+      detalle.replaceChildren();
+
+      const k = document.createElement("p");
+      k.className = "k";
+      k.textContent = etapa
+        ? "Paso " + seleccion.orden + " · Etapa " + etapa.numero + " · " + etapa.bloque + (etapa.fija ? " · FIJA" : "")
+        : "Paso " + seleccion.orden + " · Caja del recorrido";
+      const h = document.createElement("h3");
+      h.textContent = seleccion.caja;
+      detalle.append(k, h);
+
+      const callout = document.createElement("div");
+      callout.className = "callout";
+      const strong = document.createElement("strong");
+      strong.textContent = seleccion.algoritmo;
+      const resto = document.createElement("span");
+      resto.textContent = seleccion.faseTexto + ". " + seleccion.ocurre + " Siguiente: " + seleccion.siguiente + ".";
+      callout.append(strong, resto);
+      detalle.append(callout);
+
+      if (etapa) {
+        const rol = document.createElement("p");
+        rol.textContent = etapa.rol;
+        const grid = document.createElement("div");
+        grid.className = "grid-2";
+        const enunciado = parrafo("", "Enunciado", etapa.enunciado);
+        const bloque = document.createElement("p");
+        bloque.className = "source";
+        bloque.textContent = "Bloque " + etapa.bloque + " · " + etapa.fase + " · " + etapa.caja;
+        enunciado.append(bloque);
+        const notebook = parrafo("", "En el notebook", null);
+        const elegido = document.createElement("p");
+        const b = document.createElement("b");
+        b.textContent = etapa.elegido;
+        elegido.append(b);
+        const donde = document.createElement("p");
+        donde.className = "source";
+        donde.textContent = etapa.donde;
+        notebook.append(elegido, donde);
+        grid.append(enunciado, notebook);
+        const meta = document.createElement("div");
+        meta.className = "grid-2";
+        meta.style.marginTop = "8px";
+        meta.append(parrafo("", "Cuándo corre", etapa.cuando), parrafo("", "Quedó fuera", etapa.noElegido));
+        const nota = document.createElement("div");
+        nota.className = "callout";
+        const notaTitulo = document.createElement("strong");
+        notaTitulo.textContent = "Lectura para el informe";
+        const notaTexto = document.createTextNode(etapa.nota);
+        nota.append(notaTitulo, notaTexto);
+        detalle.append(rol, grid, meta, nota);
+      } else {
+        const aviso = document.createElement("p");
+        aviso.textContent = "Esta caja ordena el recorrido. El enunciado numera las estructuras, y el número aparece en la fila cuando la caja es una de esas etapas.";
+        detalle.append(aviso);
+      }
+
+      document.querySelectorAll(".node[data-paso]").forEach((nodo) => {
+        const activo = nodo.getAttribute("data-paso") === pasoId;
+        nodo.classList.toggle("is-on", activo);
+        nodo.setAttribute("aria-pressed", activo ? "true" : "false");
       });
       renderTabla();
     }
 
-    function elegir(id) {
-      const e = ETAPAS.find((x) => x.id === id);
-      if (!e) return;
-      if (filtro !== "todas" && e.grupo !== filtro) {
-        filtro = "todas";
-        document.querySelectorAll("#filtros .pill").forEach((p) => p.classList.toggle("is-on", p.dataset.filtro === "todas"));
+    function elegirPaso(id) {
+      if (!PASOS.some((paso) => paso.id === id)) return;
+      const paso = PASOS.find((item) => item.id === id);
+      if (franja !== "todas" && paso.fase !== franja) {
+        franja = paso.fase;
+        document.querySelectorAll("#filtros .pill").forEach((pill) => {
+          pill.classList.toggle("is-on", pill.dataset.filtro === paso.fase);
+        });
       }
-      etapaId = id;
+      pasoId = id;
       renderDetalle();
     }
 
     document.getElementById("filtros").addEventListener("click", (ev) => {
-      const b = ev.target.closest("button");
-      if (!b) return;
-      filtro = b.dataset.filtro;
-      document.querySelectorAll("#filtros .pill").forEach((p) => p.classList.toggle("is-on", p === b));
-      if (!visibles().some((e) => e.id === etapaId)) etapaId = visibles()[0].id;
+      const boton = ev.target.closest("button");
+      if (!boton) return;
+      franja = boton.dataset.filtro;
+      document.querySelectorAll("#filtros .pill").forEach((pill) => pill.classList.toggle("is-on", pill === boton));
+      const cabe = PASOS.some((paso) => paso.id === pasoId && (franja === "todas" || paso.fase === franja));
+      if (!cabe) {
+        const primero = PASOS.find((paso) => franja === "todas" || paso.fase === franja);
+        if (primero) pasoId = primero.id;
+      }
       renderDetalle();
     });
     document.getElementById("tabla-etapas").addEventListener("click", (ev) => {
-      const b = ev.target.closest("[data-etapa]");
-      if (b) elegir(b.dataset.etapa);
+      const boton = ev.target.closest("[data-paso]");
+      if (boton) elegirPaso(boton.dataset.paso);
     });
-    document.querySelectorAll(".node[data-etapa]").forEach((n) => {
-      n.addEventListener("click", () => {
-        elegir(n.dataset.etapa);
+    document.querySelectorAll(".node[data-paso]").forEach((nodo) => {
+      nodo.addEventListener("click", () => {
+        elegirPaso(nodo.dataset.paso);
         document.getElementById("detalle").scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
     });
+
 
     const FICHA = {
       alta: {
