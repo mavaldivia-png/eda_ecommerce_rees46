@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solución global · Motor REES46</title>
+<style>
+  :root {
+    --ink: #1a2428;
+    --muted: #5c6c74;
+    --line: #d5e0e4;
+    --paper: #f3f6f7;
+    --card: #ffffff;
+    --teal: #0c7480;
+    --teal-d: #084e56;
+    --teal-s: #e4f2f3;
+    --amber: #b86e0a;
+    --amber-s: #fbf4e6;
+    --red: #9d342c;
+    --red-s: #f8eceb;
+    --green: #2c6b4a;
+    --green-s: #e7f3ec;
+    --navy: #1d3d48;
+    --night: #102226;
+    --night-2: #18343a;
+    --cream: #f6f3ec;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%;
+    background: #0c1618;
+    font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+    color: var(--ink);
+  }
+  button, input { font-family: inherit; }
+  #stage {
+    width: 1920px; height: 1080px;
+    position: absolute; left: 50%; top: 50%;
+    transform-origin: center center;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    padding: 52px 72px 78px;
+    flex-direction: column;
+  }
+  .slide.on { display: flex; }
+  .slide.dark { background: var(--night); color: var(--cream); }
+  .kicker {
+    margin: 0 0 10px;
+    font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--teal); font-weight: 600;
+  }
+  .dark .kicker { color: #8fd0d4; }
+  h1 { margin: 0; font-size: 52px; line-height: 1.08; font-weight: 650; letter-spacing: -0.02em; }
+  .dark h1 { font-size: 68px; max-width: 1500px; }
+  h2 { margin: 0; font-size: 28px; font-weight: 650; }
+  .lede { margin: 16px 0 0; font-size: 26px; line-height: 1.35; max-width: 1500px; color: var(--navy); }
+  .dark .lede { color: #d5e4e4; font-size: 28px; }
+  .small { font-size: 16px; line-height: 1.4; color: var(--muted); }
+  .dark .small { color: #b7c9c9; }
+  .row { display: flex; gap: 16px; }
+  .grow { flex: 1; min-width: 0; }
+  .grid2 { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 28px; min-height: 0; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .dark .card { background: var(--night-2); border-color: #2a4a50; color: var(--cream); }
+  .card h2 { font-size: 22px; margin-bottom: 6px; }
+  .card p { margin: 0; font-size: 18px; line-height: 1.35; }
+  .tag {
+    display: inline-block;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px;
+    background: var(--teal-s); color: var(--teal-d);
+  }
+  .mono { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
+
+  .chrome {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 46px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 72px;
+    font-size: 14px; color: var(--muted);
+    pointer-events: none;
+  }
+  .slide.dark ~ .chrome, body.dark-slide .chrome { color: #8aa; }
+  .progress {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #d5e0e4;
+  }
+  .progress > div { height: 100%; background: var(--teal); width: 0; }
+  body.dark-slide .progress { background: #1e383c; }
+
+  .notes {
+    display: none;
+    position: absolute; left: 48px; right: 48px; bottom: 58px;
+    background: #081416; color: #e7f2f2;
+    border-radius: 10px; padding: 16px 20px;
+    font-size: 18px; line-height: 1.35;
+    z-index: 5;
+  }
+  body.show-notes .notes.on { display: block; }
+
+  .overview {
+    display: none;
+    position: absolute; inset: 0;
+    background: rgba(8, 16, 18, 0.94);
+    z-index: 6;
+    padding: 48px 56px;
+    color: var(--cream);
+  }
+  body.show-overview .overview { display: block; }
+  .overview h2 { font-size: 28px; margin-bottom: 18px; }
+  .ov-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+  .ov-grid button {
+    text-align: left; cursor: pointer;
+    background: #18343a; color: var(--cream);
+    border: 1px solid #2c555c; border-radius: 8px;
+    padding: 12px; min-height: 120px;
+  }
+  .ov-grid button strong { display: block; color: #8fd0d4; font-size: 13px; letter-spacing: 0.08em; }
+  .ov-grid button span { display: block; margin-top: 8px; font-size: 16px; line-height: 1.25; }
+  .ov-grid button.here { outline: 2px solid #8fd0d4; }
+
+  .idx { display: flex; flex-direction: column; gap: 12px; margin-top: 36px; }
+  .idx button {
+    display: grid; grid-template-columns: 90px 1fr auto;
+    align-items: center; gap: 18px;
+    text-align: left; cursor: pointer;
+    background: transparent; color: inherit;
+    border: 0; border-bottom: 1px solid #2a4a50;
+    padding: 14px 0; font-size: 32px;
+  }
+  .idx button em { font-style: normal; color: #8fd0d4; font-size: 22px; letter-spacing: 0.12em; }
+  .idx button small { color: #9db4b4; font-size: 18px; }
+
+  .story { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
+  .beat-row { display: grid; grid-template-columns: 120px 1fr; gap: 16px; }
+  .beat-row .when { font-family: "SF Mono", ui-monospace, Menlo, monospace; color: var(--teal-d); font-size: 18px; padding-top: 14px; }
+  .beat-row .card { border-left: 4px solid var(--teal); }
+  .facts { display: flex; flex-direction: column; gap: 12px; }
+  .stat { font-size: 34px; font-weight: 700; letter-spacing: -0.03em; color: var(--teal-d); }
+  .stat span { display: block; font-size: 16px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 2px; }
+
+  .pipe { display: flex; flex-direction: column; gap: 14px; margin-top: 22px; }
+  .band { display: flex; align-items: stretch; gap: 8px; }
+  .node {
+    flex: 1; background: white; border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; min-height: 74px;
+  }
+  .node b { display: block; font-size: 16px; }
+  .node span { display: block; font-size: 14px; color: var(--muted); margin-top: 3px; }
+  .node.core { border-top: 3px solid var(--teal); }
+  .node.store { border-top: 3px solid #3d6f8a; }
+  .node.fraud { border-top: 3px solid var(--red); }
+  .node.reco { border-top: 3px solid var(--green); }
+  .node.graph { border-top: 3px solid #6a4e8a; }
+  .node.svc { border-top: 3px solid var(--navy); }
+  .split-label { font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 4px 0; }
+
+  .fila {
+    width: 168px; flex: 0 0 168px;
+    background: white; border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 10px; border-left-width: 4px;
+  }
+  .fila .h { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 16px; font-weight: 700; }
+  .fila .t { font-size: 15px; font-weight: 650; }
+  .fila .m { font-size: 13px; color: var(--muted); }
+  .fila.hist { background: var(--teal-s); }
+  .fila.stream { background: var(--amber-s); }
+  .fila.tie { outline: 2px solid var(--amber); }
+  .fila.ghost { opacity: 0.45; text-decoration: line-through; }
+  .p1 { border-left-color: var(--red); }
+  .p2 { border-left-color: var(--amber); }
+  .p3 { border-left-color: var(--teal); }
+  .p4 { border-left-color: #3d6f8a; }
+  .p5 { border-left-color: var(--green); }
+  .p6 { border-left-color: #8aa0a8; }
+  .lane { display: flex; gap: 10px; min-height: 118px; align-items: stretch; }
+  .caption {
+    margin-top: 14px; background: white; border-radius: 8px;
+    border: 1px solid var(--line); padding: 12px 16px;
+    font-size: 20px; line-height: 1.35; min-height: 78px;
+  }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .legend i { font-style: normal; font-size: 14px; color: var(--muted); }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tile { background: white; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-height: 148px; opacity: 0.38; }
+  .tile.on { opacity: 1; border-color: var(--teal); background: #f7fcfc; }
+  .tile b { display: block; font-size: 18px; margin-bottom: 6px; }
+  .tile p { margin: 0; font-size: 16px; line-height: 1.35; color: var(--navy); }
+
+  .heap-wrap { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px; margin-top: 8px; min-height: 0; }
+  .box-title { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .queue { display: flex; gap: 10px; min-height: 120px; align-items: center; }
+  .queue .empty { color: var(--muted); font-size: 18px; }
+  .tree { position: relative; height: 360px; }
+  .hn {
+    position: absolute; width: 150px; background: white;
+    border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px;
+    padding: 8px 10px; transform: translate(-50%, -50%);
+  }
+  .hn .h { font-size: 14px; font-weight: 700; }
+  .hn .m { font-size: 13px; color: var(--muted); font-family: "SF Mono", ui-monospace, Menlo, monospace; }
+  .exits { display: flex; gap: 8px; margin-top: 8px; min-height: 36px; }
+  .exit-pill { font-size: 14px; background: var(--teal-s); color: var(--teal-d); border-radius: 999px; padding: 4px 10px; }
+
+  .slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; }
+  .slot { background: white; border: 1px dashed var(--line); border-radius: 10px; min-height: 150px; padding: 14px; }
+  .slot.fill { border-style: solid; }
+  .slot .n { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .slot b { display: block; margin: 8px 0 4px; font-size: 18px; }
+  .slot.from-v { background: var(--green-s); border-color: var(--green); }
+  .slot.from-g { background: #f3eef8; border-color: #6a4e8a; }
+
+  .trie { display: flex; gap: 28px; align-items: flex-start; }
+  .trie svg { width: 760px; height: 340px; }
+  .out { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .out .card b { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 16px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+  .rank { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 18px; }
+  .rank b { font-family: "SF Mono", ui-monospace, Menlo, monospace; }
+
+  .decision { border-top: 4px solid var(--line); }
+  .decision.bloquear { border-top-color: var(--red); background: var(--red-s); }
+  .decision.revisar { border-top-color: var(--amber); background: var(--amber-s); }
+  .decision.permitir { border-top-color: var(--green); background: var(--green-s); }
+  .decision.dim { opacity: 0.35; }
+
+  .bits { display: flex; gap: 6px; margin-top: 8px; }
+  .bit { width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--line); display: grid; place-items: center; font-family: ui-monospace, Menlo, monospace; font-size: 14px; background: white; }
+  .bit.onb { background: var(--teal); color: white; border-color: var(--teal); }
+
+  .frag { opacity: 0; }
+  .frag.on { opacity: 1; }
+  .src { margin-top: auto; font-size: 14px; color: var(--muted); }
+  a { color: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <section class="slide dark on" data-title="Portada">
+    <p class="kicker">UTEC · Maestría en Ciencia de Datos e Inteligencia Artificial</p>
+    <h1>Un evento entra por la cola y sale como recomendación, alerta o arista.</h1>
+    <p class="lede">Motor de comercio electrónico sobre eventos reales de REES46. Cada etapa usa la estructura que el dato siguiente va a leer.</p>
+    <div style="margin-top:auto" class="small">Estructuras de Datos y Algoritmos · 2026-2 · Prof. Heider Sánchez<br>Trabajo grupal · octubre 2019 · semilla 42</div>
+    <div class="notes">Quince minutos. La demo son las diapositivas 5, 6 y 7: espacio avanza el algoritmo, la flecha cambia de diapositiva. No hace falta abrir el notebook durante la exposición.</div>
+  </section>
+
+  <section class="slide dark" data-title="Índice">
+    <p class="kicker">Recorrido · 15 minutos</p>
+    <h1>Cinco movimientos</h1>
+    <div class="idx">
+      <button data-goto="3"><em>01</em> El problema, en una visita real <small>2 min</small></button>
+      <button data-goto="5"><em>02</em> Fase A · del archivo al corte <small>3 min</small></button>
+      <button data-goto="6"><em>03</em> Rama B escribe, rama C atiende <small>4 min</small></button>
+      <button data-goto="9"><em>04</em> Fraude, recomendación, co-compra <small>5 min</small></button>
+      <button data-goto="13"><em>05</em> Qué se eligió, y qué no se cita <small>1 min</small></button>
+    </div>
+    <div class="notes">Si preguntan por una etapa, O abre el índice de las 14 pantallas. Esta diapositiva salta a los cinco bloques.</div>
+  </section>
+
+  <section class="slide" data-title="El problema">
+    <p class="kicker">01 · Problema</p>
+    <h1>Miró un Xiaomi y lo compró 47 segundos después.</h1>
+    <div class="grid2" style="margin-top:22px">
+      <div>
+        <p class="small">Usuario 513351129 · 1 de noviembre de 2019 · misma fuente REES46. El notebook corre octubre; esta visita muestra el embudo que el pipeline tiene que respetar.</p>
+        <div class="story">
+          <div class="beat-row"><div class="when">00:00:17</div><div class="card"><b>view</b> · producto 1005161 · electronics.smartphone · xiaomi · 211,92</div></div>
+          <div class="beat-row" style="margin-top:10px"><div class="when">00:01:04</div><div class="card"><b>purchase</b> · el mismo producto, la misma sesión</div></div>
+        </div>
+        <p class="small" style="margin-top:14px">Una sesión puede traer varias compras y el archivo no tiene order_id. Dos compras de la misma sesión son la orden. La misma acción puede repetirse: por eso el duplicado no es un caso inventado.</p>
+      </div>
+      <div class="facts">
+        <div class="card"><div class="stat">94,2 %<span>de noviembre 2019 son vistas. Carrito 4,5 %. Compra 1,4 %.</span></div></div>
+        <div class="card"><div class="stat">6 campos<span>Hora, tipo, producto, precio, usuario y sesión tienen que venir. Marca y categoría vacías se rellenan, no se tiran.</span></div></div>
+        <div class="card"><div class="stat">Semilla 42<span>El CSV no trae prioridad, dispositivo, pago ni etiqueta de fraude. Eso se genera. El comportamiento es el del archivo.</span></div></div>
+      </div>
+    </div>
+    <div class="notes">El enunciado pide atender lo urgente, consultar un producto, recomendar, marcar sospecha sin bloquear por una sospecha, y mostrar influencia. Esta visita es el hilo. Los campos que faltan se dicen en voz alta: no están en Kaggle.</div>
+  </section>
+
+  <section class="slide" data-title="Mapa">
+    <p class="kicker">01 · Problema</p>
+    <h1>Diez etapas, un corte, una sola rama por evento.</h1>
+    <div class="pipe">
+      <div class="split-label">Fase A · el lote entero, todavía nadie consulta</div>
+      <div class="band">
+        <div class="node core"><b>0 · Cola FIFO</b><span>deque. Llega por el fondo, sale por el frente.</span></div>
+        <div class="node core"><b>1 · Limpieza</b><span>Hash de duplicados y merge sort por (hora, índice).</span></div>
+        <div class="node core"><b>2 · Min-heap</b><span>Clave (prioridad, orden de la cola).</span></div>
+      </div>
+      <div class="split-label">Corte 60 / 40 sobre el lote ya ordenado · la fase B escribe, la fase C lee</div>
+      <div class="band">
+        <div class="node store"><b>3 · Hash, dispersa, LRU</b><span>Ficha, conteo usuario-producto, 256 recientes.</span></div>
+        <div class="node store"><b>4 · B+Tree</b><span>Precio. Rango caminando las hojas.</span></div>
+        <div class="node store"><b>5 · KD-Tree</b><span>KNN exacto, línea base del vector.</span></div>
+        <div class="node fraud"><b>6 · Bloom + CMS</b><span>Se arman antes de ver el stream.</span></div>
+        <div class="node reco"><b>7 · HNSW</b><span>14 dimensiones. 1 cupo del top 5.</span></div>
+        <div class="node graph"><b>8 · Dos grafos</b><span>Sesión, y co-compra con PageRank y Louvain.</span></div>
+      </div>
+      <div class="split-label">El orquestador abre una rama · vista o carrito, o compra</div>
+      <div class="band">
+        <div class="node reco"><b>Recomendación</b><span>1 vecino HNSW + 4 del grafo de sesión.</span></div>
+        <div class="node fraud"><b>Fraude</b><span>Tal vez, luego confirmar. Bloquear no crea arista.</span></div>
+        <div class="node graph"><b>Co-compra</b><span>Solo compras que siguieron, misma sesión, hora anterior.</span></div>
+        <div class="node svc"><b>9 · Trie y panel</b><span>Texto por categoría y marca. Top-K. Dashboard.</span></div>
+      </div>
+    </div>
+    <p class="src">La numeración es la del enunciado. El recorrido es el de los canvas Fase A y ramas B y C.</p>
+    <div class="notes">Señalar el corte antes que las cajas de la derecha. La fase B no atiende gente: llena estructuras. La fase C no reentrena el Bloom: consulta lo que el histórico ya escribió.</div>
+  </section>
+
+  <section class="slide" data-title="Fase A" data-live="faseA" data-steps="5">
+    <p class="kicker">02 · Fase A · espacio avanza el paso</p>
+    <h1>Del orden del archivo al corte en el tiempo.</h1>
+    <div id="faseA" style="margin-top:16px"></div>
+    <div class="notes">Cinco espacios. 1 archivo desordenado. 2 el duplicado choca con la tabla hash. 3 merge sort, y el empate de las 09:40 lo gana la fila 1. 4 la prioridad es un entero, el fraude se decide antes que el tipo de entrega. 5 el 60 % entrena. En quick: 59.989 histórico y 39.994 en la cola. E00059989 es el primero del stream.</div>
+  </section>
+
+  <section class="slide" data-title="Rama B" data-live="faseB" data-steps="5">
+    <p class="kicker">03 · Rama B · el histórico escribe</p>
+    <h1>Cuatro filas llenan las estructuras que el stream va a leer.</h1>
+    <div id="faseB" style="margin-top:14px"></div>
+    <div class="notes">Estas cuatro filas son la miniatura, no las 59.989. El fraude de las 08:20 cae aquí y entrena el filtro. Decir en voz alta que en la corrida real también hay fraude dentro del stream: eso se ve en la diapositiva 9, evento E00062426.</div>
+  </section>
+
+  <section class="slide" data-title="Rama C" data-live="faseC" data-steps="10">
+    <p class="kicker">03 · Rama C · espacio avanza la cola y el heap</p>
+    <h1>La cola guarda el orden. El heap lo deshace.</h1>
+    <div id="faseC" style="margin-top:8px"></div>
+    <div class="notes">Llegan de a uno por el fondo. Al quinto espacio la cola se vacía y el heap queda armado. Programada llegó última y sale segunda, porque su prioridad es 4 y Carrito es 5. Si dos prioridades empatan, gana el orden más chico: el que estaba más cerca del frente.</div>
+  </section>
+
+  <section class="slide" data-title="Orquestador" data-live="orq" data-steps="4">
+    <p class="kicker">03 · Una sola rama</p>
+    <h1>Vista y carrito piden productos. La compra pide un veredicto.</h1>
+    <div id="orq" style="margin-top:18px"></div>
+    <div class="notes">Tres eventos de la corrida quick, no de la miniatura. La vista E00059989 no entra a fraude. La compra bloqueada no entra a recomendación. La co-compra es continuación de la compra, y solo si no se bloqueó.</div>
+  </section>
+
+  <section class="slide" data-title="Fraude" data-live="fraude" data-steps="4">
+    <p class="kicker">04 · Etapa 6 · fija</p>
+    <h1>Bloom dice «tal vez». Solo el conjunto exacto bloquea.</h1>
+    <div id="fraude" style="margin-top:16px"></div>
+    <div class="notes">Tres decisiones: permitir, revisar, bloquear. Revisar existe para no cortar una compra por un falso positivo. En quick hubo 7 bloqueos y 0 revisiones. El umbral de intensidad del Count-Min es 8 sobre la clave usuario|hora. Una vista no se evalúa.</div>
+  </section>
+
+  <section class="slide" data-title="Recomendación" data-live="reco" data-steps="4">
+    <p class="kicker">04 · Etapa 7 · fija</p>
+    <h1>El top 5 mezcla un vecino vectorial y cuatro de la sesión.</h1>
+    <div id="reco" style="margin-top:12px"></div>
+    <div class="notes">La vista E00059989, producto 5301260, categoría unknown, marca vitek. El backend de esa corrida fue hnswlib. El primer casillero es el cupo HNSW; los otros cuatro salen del grafo de sesión. MinHash+LSH mide Jaccard entre conjuntos y no llena estos casilleros. KNN exacto es la línea base: el KD-Tree de la etapa 5 contrastó contra fuerza bruta y la corrida dijo CORRECTA.</div>
+  </section>
+
+  <section class="slide" data-title="Co-compra" data-live="grafo" data-steps="4">
+    <p class="kicker">04 · Etapa 8 · fija</p>
+    <h1>La arista une dos compras de la misma sesión, en orden.</h1>
+    <div id="grafo" style="margin-top:12px"></div>
+    <div class="notes">PageRank y grado no eligen al mismo producto. En quick el primero por PageRank es 1004237 y el primero por grado es 1004856, con grado 9. Louvain dejó 733 comunidades y modularidad 0,91. Una compra bloqueada no suma arista: E00062426 se quedó en la caja de fraude.</div>
+  </section>
+
+  <section class="slide" data-title="Servicio" data-live="servicio" data-steps="4">
+    <p class="kicker">04 · Etapa 9</p>
+    <h1>El hash responde por id. El trie responde por texto.</h1>
+    <div id="servicio" style="margin-top:12px"></div>
+    <div class="notes">El CSV no trae el nombre del producto. El trie guarda categoría y marca. completar hace un BFS con los hijos ordenados y devuelve hasta 5. El panel de quick: 39.994 eventos en el stream, 714 ventas, 7 bloqueos. La búsqueda binaria encontró 12719243 en la posición 10310. El rango de precios 160,86 a 304,25 devolvió 2.950 productos por el B+Tree.</div>
+  </section>
+
+  <section class="slide" data-title="Decisiones">
+    <p class="kicker">05 · Evidencia que sí se puede decir</p>
+    <h1>Cada familia tiene un rival. Estos números salen de la corrida.</h1>
+    <div class="grid2" style="margin-top:16px; align-items:start">
+      <div class="card" style="padding:8px 18px">
+        <div class="rank"><span>Duplicados exactos, tabla hash, antes de ordenar</span><b>17</b></div>
+        <div class="rank"><span>Filas que siguen, de 100.000 leídas</span><b>99.983</b></div>
+        <div class="rank"><span>Histórico / cola</span><b>59.989 / 39.994</b></div>
+        <div class="rank"><span>Catálogo · peor caso binario</span><b>20.621 · 15</b></div>
+        <div class="rank"><span>Id del medio, posición hallada</span><b>12719243 · 10310</b></div>
+        <div class="rank"><span>KD-Tree contra fuerza bruta</span><b>correcta</b></div>
+        <div class="rank"><span>Rango B+Tree 160,86–304,25</span><b>2.950</b></div>
+        <div class="rank"><span>Louvain · modularidad</span><b>733 · 0,91</b></div>
+        <div class="rank"><span>Bloqueos en el stream</span><b>7</b></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:12px">
+          <h2>El rival de cada elección</h2>
+          <p>Bloom y Count-Min contra el conjunto exacto: tiempo, memoria, falsos positivos y error de frecuencia. MinHash+LSH contra Jaccard y contra SimHash. HNSW contra KNN exacto y contra IVF: tiempo, recall@K y memoria. PageRank contra el grado. Louvain contra Label Propagation: modularidad, tiempo y estabilidad.</p>
+        </div>
+        <div class="card" style="background: var(--amber-s); border-color: #ead7b0">
+          <h2>Lo que esta pantalla no cita</h2>
+          <p>Las figuras de <span class="mono">pruebas_algoritmos/figuras</span> salieron con fuente sintética. El propio README pide no citarlas. Cuando <span class="mono">00_todas_las_comparativas</span> corra con <span class="mono">2019-Oct.csv</span>, esas curvas reemplazan este recuadro.</p>
+        </div>
+      </div>
+    </div>
+    <p class="src">Corrida guardada en el notebook v2, modo quick, octubre 2019, semilla 42. El catálogo de 20.621 y las 17 filas duplicadas están en la misma corrida.</p>
+    <div class="notes">Si preguntan por los gráficos de tiempo, decir que la carpeta de figuras es validación sintética. Los números de esta diapositiva sí son de octubre. Merge sort se eligió porque el corte tiene que ser el mismo orden con 99.983 filas y con bloques de 100.000. Quicksort se degrada si el pivote cae en un extremo y el CSV ya viene casi ordenado por tiempo.</div>
+  </section>
+
+  <section class="slide dark" data-title="Cierre">
+    <p class="kicker">Cierre</p>
+    <h1>La salida de una etapa es la entrada de la siguiente.</h1>
+    <div class="grid3" style="margin-top:36px">
+      <div class="card"><p class="tag">Vista</p><h2 style="margin-top:10px">Recomendación</h2><p>E00059989 sale del heap con prioridad 6 y deja cinco productos.</p></div>
+      <div class="card"><p class="tag">Compra confirmada</p><h2 style="margin-top:10px">Alerta</h2><p>E00062426 tiene prioridad 1. El conjunto exacto bloquea. No hay arista.</p></div>
+      <div class="card"><p class="tag">Compra que sigue</p><h2 style="margin-top:10px">Arista, o ninguna</h2><p>E00060242 se permite. En su sesión no había una compra anterior: cero aristas nuevas.</p></div>
+    </div>
+    <p class="lede" style="margin-top:36px">Preguntas. Las diapositivas 5 a 12 se pueden volver a correr.</p>
+    <div class="notes">Cerrar con las tres salidas observables que pide la rúbrica: recomendación, alerta, grafo. Ofrecer repetir el heap o el fraude si la pregunta va por ahí.</div>
+  </section>
+
+  <div class="chrome">
+    <span id="hint">espacio avanza el paso · flechas cambian de diapositiva · F pantalla · S notas · O índice</span>
+    <span id="num"></span>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="overview" id="overview">
+    <h2>Índice de la exposición</h2>
+    <div class="ov-grid" id="ov"></div>
+  </div>
+</div>
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll(".slide"));
+  const notes = slides.map((s) => (s.querySelector(".notes") ? s.querySelector(".notes").textContent.trim() : ""));
+  let index = 0;
+  let step = 0;
+
+  const FILAS = [
+    { id: 0, hora: "11:20", min: 680, tipo: "vista", etq: "Vista", prio: 6, prod: "510081", user: 17, ses: "sA" },
+    { id: 1, hora: "09:40", min: 580, tipo: "compra", etq: "Express", prio: 2, prod: "100000", user: 12, ses: "sB" },
+    { id: 2, hora: "10:55", min: 655, tipo: "carrito", etq: "Carrito", prio: 5, prod: "480002", user: 21, ses: "sC" },
+    { id: 3, hora: "08:05", min: 485, tipo: "vista", etq: "Vista", prio: 6, prod: "180220", user: 9, ses: "sD" },
+    { id: 4, hora: "12:10", min: 730, tipo: "compra", etq: "Programada", prio: 4, prod: "100000", user: 14, ses: "sE" },
+    { id: 5, hora: "08:50", min: 530, tipo: "carrito", etq: "Carrito", prio: 5, prod: "390044", user: 33, ses: "sF" },
+    { id: 6, hora: "09:40", min: 580, tipo: "compra", etq: "Estándar", prio: 3, prod: "100000", user: 13, ses: "sG" },
+    { id: 7, hora: "08:20", min: 500, tipo: "compra", etq: "Fraude", prio: 1, prod: "100055", user: 11, ses: "sH" }
+  ];
+  const POR_TIEMPO = FILAS.slice().sort((a, b) => a.min - b.min || a.id - b.id);
+
+  function card(f, extra) {
+    const prio = extra && extra.prio;
+    return `<div class="fila p${f.prio} ${extra && extra.cls ? extra.cls : ""}">
+      <div class="h">${f.hora}</div>
+      <div class="t">${f.etq}</div>
+      <div class="m">fila ${f.id} · ${f.prod}</div>
+      ${prio ? `<div class="m">prioridad ${f.prio}</div>` : `<div class="m">u${f.user} · ${f.ses}</div>`}
+    </div>`;
+  }
+
+  function faseA(n) {
+    const orden = n >= 2 ? POR_TIEMPO : FILAS;
+    const showPrio = n >= 3;
+    const split = n >= 4;
+    const htmlCards = orden.map((f) => {
+      let cls = "";
+      if (split) cls = POR_TIEMPO.indexOf(f) < 4 ? "hist" : "stream";
+      if (n === 2 && (f.id === 1 || f.id === 6)) cls += " tie";
+      return card(f, { prio: showPrio, cls });
+    }).join("");
+    const textos = [
+      "Ocho filas en el orden en que sobrevivieron al archivo. Una vista de las 08:05 está a la mitad. El corte, aplicado aquí, no sería un corte en el tiempo.",
+      "La clave del diccionario es hora, tipo, producto, usuario y sesión. La compra de las 09:40 del usuario 12 ya ocupa la fila 1: la copia se descarta sin recorrer el lote. Las filas vacías ya salieron con dropna. Marca y categoría vacías se rellenan con unknown.",
+      "Merge sort, clave (hora, índice de archivo). Las dos compras de las 09:40 empatan en la hora. Gana la fila 1, la Express, porque 1 es menor que 6. En quick son 99.983 filas y el umbral de bloque es 100.000: una sola pasada de merge sort, 17 niveles.",
+      "La prioridad es un entero del 1 al 6 que viaja con el evento. Fraude se pregunta primero: compra y h % 125 = 0, cerca de una compra de cada 125. La de las 08:20 tiene bucket 0, que habría sido Express, y no se usa. Vista y carrito no entran a esa pregunta.",
+      "train = parte entera de n × 0,60. Aquí, 4 de 8. En quick, de 99.983 filas quedan 59.989 en el histórico y 39.994 en la cola. E00059989 es la primera del stream. En esta miniatura el fraude de las 08:20 entrena el filtro. En la corrida también hay fraude dentro de la cola."
+    ];
+    const legend = showPrio ? `<div class="legend">
+      <i><b class="sw" style="background:#9d342c"></b>1 Fraude</i>
+      <i><b class="sw" style="background:#b86e0a"></b>2 Express</i>
+      <i><b class="sw" style="background:#0c7480"></b>3 Estándar</i>
+      <i><b class="sw" style="background:#3d6f8a"></b>4 Programada</i>
+      <i><b class="sw" style="background:#2c6b4a"></b>5 Carrito</i>
+      <i><b class="sw" style="background:#8aa0a8"></b>6 Vista</i>
+      ${split ? `<i><b class="sw" style="background:#e4f2f3"></b>fase B</i><i><b class="sw" style="background:#fbf4e6"></b>fase C</i>` : ""}
+    </div>` : "";
+    document.getElementById("faseA").innerHTML =
+      `<div class="lane">${htmlCards}</div>${legend}<div class="caption">${textos[n]}</div><p class="small" style="margin-top:8px">Paso ${n + 1} de 5 · miniatura de 8 filas, mismas reglas que el notebook</p>`;
+  }
+
+  function faseB(n) {
+    const hist = POR_TIEMPO.slice(0, 4);
+    const tiles = [
+      ["Hash, matriz dispersa, LRU", "La ficha vive en un diccionario por product_id. La matriz dispersa cuenta usuario × producto como diccionario de diccionarios. El LRU guarda 256: si el producto sigue adentro, la fase C responde CACHE."],
+      ["B+Tree de precio y KD-Tree", "buscar_rango baja por los separadores y camina el enlace entre hojas. En quick, el rango 160,86–304,25 devolvió 2.950 productos. El KD-Tree es el KNN exacto de precio y popularidad: contrastó contra fuerza bruta y quedó correcta."],
+      ["Grafo de sesión y vector de 14", "La sesión une productos de cualquier tipo de evento. El vector lleva precio y popularidad en log, 8 casillas de categoría y 4 de marca. HNSW busca vecinos en L2. MinHash+LSH mide parecido de conjuntos y no arma este índice."],
+      ["Bloom, Count-Min, co-compra, trie", "El filtro se llena antes del stream. Count-Min suma usuario|hora, con la hora en punto. El conjunto exacto guarda dispositivo y pago confirmados. El grafo de co-compra solo une compras, en orden. El trie guarda «categoría marca»."]
+    ];
+    const caps = [
+      "El histórico de la miniatura: de las 08:05 a la Express de las 09:40. La fase C todavía no arranca.",
+      "Tres memorias a la vez. El hash responde «qué es este producto». La matriz responde «este usuario ya lo tocó». El LRU responde «acabamos de verlo».",
+      "El precio no vive en el hash de la ficha para las consultas por rango: vive en el B+Tree. El KD-Tree no reemplaza a HNSW; es la medición exacta contra la que se juzga el aproximado.",
+      "Un grafo de sesión no es el grafo de co-compra. El primero alimenta la recomendación. El segundo es la red de la etapa 8.",
+      "La compra Fraude de las 08:20, usuario 11 y producto 100055, queda de este lado del corte. Entrena Bloom y el conjunto exacto. No se atiende en la cola de esta miniatura."
+    ];
+    document.getElementById("faseB").innerHTML = `
+      <div class="lane">${hist.map((f) => card(f, { prio: true, cls: f.id === 7 && n === 4 ? "hist" : "" })).join("")}</div>
+      <div class="tiles" style="margin-top:14px">
+        ${tiles.map((t, i) => `<div class="tile ${n >= i + 1 ? "on" : ""}"><b>${t[0]}</b><p>${t[1]}</p></div>`).join("")}
+      </div>
+      <div class="caption">${caps[n]}</div>
+      <p class="small" style="margin-top:8px">Paso ${n + 1} de 5</p>`;
+  }
+
+  const STREAM = [
+    { nombre: "Estándar", prio: 3, orden: 0, hora: "09:40", tipo: "compra" },
+    { nombre: "Carrito", prio: 5, orden: 1, hora: "10:55", tipo: "carrito" },
+    { nombre: "Vista", prio: 6, orden: 2, hora: "11:20", tipo: "vista" },
+    { nombre: "Programada", prio: 4, orden: 3, hora: "12:10", tipo: "compra" }
+  ];
+  function cmpHeap(a, b) { return a.prio - b.prio || a.orden - b.orden; }
+  function pushH(h, item) {
+    h.push(item);
+    let i = h.length - 1;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (cmpHeap(h[i], h[p]) < 0) { const t = h[i]; h[i] = h[p]; h[p] = t; i = p; }
+      else break;
+    }
+  }
+  function popH(h) {
+    const top = h[0];
+    const last = h.pop();
+    if (h.length) {
+      h[0] = last;
+      let i = 0;
+      for (;;) {
+        let m = i;
+        const l = i * 2 + 1, r = l + 1;
+        if (l < h.length && cmpHeap(h[l], h[m]) < 0) m = l;
+        if (r < h.length && cmpHeap(h[r], h[m]) < 0) m = r;
+        if (m === i) break;
+        const t = h[i]; h[i] = h[m]; h[m] = t;
+        i = m;
+      }
+    }
+    return top;
+  }
+  function heapState(pops) {
+    const h = [];
+    STREAM.forEach(pushH.bind(null, h));
+    const out = [];
+    for (let i = 0; i < pops; i++) out.push(popH(h));
+    return { h, out };
+  }
+  const POS = [{ x: 50, y: 16 }, { x: 26, y: 48 }, { x: 74, y: 48 }, { x: 14, y: 82 }];
+
+  function faseC(n) {
+    const arrived = Math.min(4, n);
+    const dumped = n >= 5;
+    const pops = dumped ? Math.min(4, n - 5) : 0;
+    const queue = dumped ? [] : STREAM.slice(0, arrived);
+    const state = dumped ? heapState(pops) : { h: [], out: [] };
+    const textos = [
+      "El 40 % de la miniatura ya está en orden de hora. La cola sigue vacía. En quick esta cola recibe 39.994 eventos.",
+      "Entra Estándar por el fondo. Con un solo evento, frente y fondo son el mismo.",
+      "Carrito se engancha a la derecha. No adelanta a Estándar. El frente sigue siendo quien llegó primero.",
+      "Vista entra al fondo. La cola todavía no mira la prioridad.",
+      "Programada llega última. Frente: Estándar. Fondo: Programada. El orden 0, 1, 2, 3 es la segunda clave que va a heredar el heap.",
+      "La cola entrega ese orden y queda vacía, igual que cola.clear(). Cada evento pasa al min-heap con la clave (prioridad, orden).",
+      "Sale Estándar, clave (3, 0). Es la menor. Llegó primero y, además, tenía la prioridad más urgente de estas cuatro.",
+      "Sale Programada, clave (4, 3). Llegó última a la cola y aun así adelanta a Carrito y a Vista. La hora 12:10 no decide: decide el entero.",
+      "Sale Carrito, clave (5, 1). Esperó a dos compras menos urgentes en el reloj, más urgentes en la etiqueta.",
+      "Sale Vista, clave (6, 2). Si otra vista hubiera empatado en prioridad 6, saldría primero la de orden menor: la que estaba más cerca del frente."
+    ];
+    const qHtml = queue.length
+      ? queue.map((e, i) => `<div class="fila p${e.prio}"><div class="h">${e.hora}</div><div class="t">${e.nombre}</div><div class="m">${i === 0 ? "frente · " : ""}orden ${e.orden}</div><div class="m">prioridad ${e.prio}</div></div>`).join("")
+      : `<div class="empty">${dumped ? "Vacía. El orden ya quedó en la clave del heap." : "Vacía."}</div>`;
+    const nodes = state.h.map((e, i) => {
+      const p = POS[i];
+      return `<div class="hn p${e.prio}" style="left:${p.x}%; top:${p.y}%"><div class="h">${e.nombre}</div><div class="m">(${e.prio}, ${e.orden})</div></div>`;
+    }).join("");
+    const lines = state.h.map((_, i) => {
+      if (i === 0) return "";
+      const parent = (i - 1) >> 1;
+      const a = POS[parent], b = POS[i];
+      return `<line x1="${a.x}%" y1="${a.y}%" x2="${b.x}%" y2="${b.y}%" stroke="#c5d4d8" stroke-width="2"/>`;
+    }).join("");
+    document.getElementById("faseC").innerHTML = `
+      <div class="heap-wrap">
+        <div>
+          <div class="box-title">Cola FIFO · frente a la izquierda</div>
+          <div class="queue">${qHtml}</div>
+          <div class="box-title" style="margin-top:16px">Ya salieron del heap</div>
+          <div class="exits">${state.out.map((e, i) => `<span class="exit-pill">${i + 1} · ${e.nombre}</span>`).join("") || `<span class="empty">Nadie.</span>`}</div>
+        </div>
+        <div>
+          <div class="box-title">Min-heap · la raíz es la próxima salida</div>
+          <div class="tree">
+            <svg width="100%" height="100%" style="position:absolute; inset:0">${lines}</svg>
+            ${nodes || `<div class="empty" style="padding-top:40px">Todavía no hay claves.</div>`}
+          </div>
+        </div>
+      </div>
+      <div class="caption">${textos[n]}</div>
+      <p class="small">Paso ${n + 1} de 10</p>`;
+  }
+
+  function orq(n) {
+    const rows = [
+      ["E00059989", "Vista", "prioridad 6", "Recomendación", "El fraude se omite: una vista no es un pago.", "p6"],
+      ["E00062426", "Compra · Fraude", "prioridad 1", "Fraude → bloquear", "No pide sugerencia. La co-compra no corre.", "p1"],
+      ["E00060242", "Compra · Express", "prioridad 2", "Fraude → permitir", "Siguió, y en su sesión no había compra anterior.", "p2"]
+    ];
+    document.getElementById("orq").innerHTML = `
+      <div class="grid3">
+        ${rows.map((r, i) => `<div class="card fila ${r[5]}" style="width:auto; flex:none; ${n === 0 || n > i ? "" : "opacity:.35"}">
+          <div class="m mono">${r[0]}</div>
+          <div class="t" style="font-size:22px; margin:6px 0">${r[1]}</div>
+          <div class="m">${r[2]}</div>
+          <div style="margin-top:12px; font-size:18px"><b>${n > i ? r[3] : "…"}</b></div>
+          <p class="small" style="margin-top:6px">${n > i ? r[4] : ""}</p>
+        </div>`).join("")}
+      </div>
+      <div class="caption">${[
+        "Tres trazas de la corrida quick. Cada una ya salió del heap. El tipo decide la rama.",
+        "Vista: híbrido de recomendación. La etapa 6 anota «omitida».",
+        "Esta compra entra a fraude y no pide un top 5. Bloquear corta la co-compra.",
+        "Esta otra compra también entra a fraude. Permitir deja intentar la co-compra. En esta sesión el intento sumó cero aristas."
+      ][n]}</div>
+      <p class="small">Paso ${n + 1} de 4 · identificadores de la corrida guardada en el notebook</p>`;
+  }
+
+  function fraude(n) {
+    const casos = [
+      ["permitir", "Sin señal", "Bloom no marca el dispositivo ni el pago. Count-Min está bajo el umbral 8. El conjunto exacto no contiene la clave. La compra sigue.", "E00060242"],
+      ["revisar", "Tal vez, sin confirmación", "Bloom enciende un motivo: los bits coinciden. El conjunto exacto no tiene ese dispositivo ni ese pago. Hay sospecha y no hay confirmación. Se revisa, no se corta.", "una compra cualquiera"],
+      ["bloquear", "Confirmado", "La etiqueta de fraude, o el dispositivo, o el pago, están en el conjunto exacto. La fila se queda en la caja 6. No suma arista de co-compra.", "E00062426"]
+    ];
+    document.getElementById("fraude").innerHTML = `
+      <div class="grid3">
+        <div class="card">
+          <h2>Bloom</h2>
+          <p>Pregunta si el dispositivo o el pago pudieron verse. Un sí puede ser falso. Un no alcanza para seguir en paz.</p>
+          <div class="bits">${[1, 0, 1, 1, 0, 0, 1, 0].map((b) => `<div class="bit ${b && n >= 2 ? "onb" : ""}">${b && n >= 2 ? 1 : 0}</div>`).join("")}</div>
+          <p class="small" style="margin-top:8px">Miniatura de bits, para ver el mecanismo. No es la huella de la corrida.</p>
+        </div>
+        <div class="card">
+          <h2>Count-Min</h2>
+          <p>Estima cuántas compras llevó la clave usuario|hora. Puede pasarse de largo. Nunca se queda corta. A partir de 8, suma un motivo de intensidad.</p>
+          <p class="mono" style="margin-top:10px; font-size:18px">usuario | hora en punto</p>
+        </div>
+        <div class="card">
+          <h2>Conjunto exacto</h2>
+          <p>Dispositivo y pago de las compras con fraude confirmado en el histórico. Si la clave está, la decisión es bloquear. Si Bloom avisó y esta caja no confirma, la decisión es revisar.</p>
+        </div>
+      </div>
+      <div class="grid3" style="margin-top:12px">
+        ${casos.map((c, i) => `<div class="card decision ${c[0]} ${n > i ? "" : "dim"}"><h2>${c[0]}</h2><p><b>${c[1]}.</b> ${c[2]}</p><p class="small" style="margin-top:8px">${c[3]}</p></div>`).join("")}
+      </div>
+      <p class="small" style="margin-top:8px">Paso ${n + 1} de 4 · en quick: 7 bloqueos y 0 revisiones sobre 39.994 eventos</p>`;
+  }
+
+  function reco(n) {
+    const ids = ["12701967", "1005115", "3800548", "5300125", "5300157"];
+    const from = ["HNSW · cupo 1", "grafo de sesión", "grafo de sesión", "grafo de sesión", "grafo de sesión"];
+    document.getElementById("reco").innerHTML = `
+      <p class="lede" style="font-size:22px; margin-top:0">Vista E00059989 · producto 5301260 · marca vitek · el índice de esa corrida respondió con hnswlib.</p>
+      <div class="slots">
+        ${ids.map((id, i) => `<div class="slot ${n >= 1 && (i === 0 || n >= 2) ? "fill " + (i === 0 ? "from-v" : "from-g") : ""}">
+          <div class="n">casilla ${i + 1}</div>
+          <b class="mono">${n >= 1 && (i === 0 || n >= 2) ? id : "—"}</b>
+          <div class="small">${n >= 1 && (i === 0 || n >= 2) ? from[i] : ""}</div>
+        </div>`).join("")}
+      </div>
+      <div class="caption">${[
+        "Cinco lugares. Todavía vacíos. hibrido toma 1 del índice vectorial y 4 del grafo, y rellena hasta 5 si falta gente.",
+        "La consulta promedia los vectores de lo ya visto en la sesión y busca vecinos en L2. El primer casillero es ese cupo. 14 números: precio, popularidad, 8 de categoría, 4 de marca.",
+        "El grafo de sesión suma el peso de las aristas y se salta lo ya visto. Esos cuatro no son «los más parecidos en atributos»: son los que compartieron visita.",
+        "Si el producto no está en el índice, entran los populares. KNN exacto recorre el catálogo y sirve de línea base. MinHash+LSH compara conjuntos con Jaccard: es la otra familia de la etapa 7, y no ocupa estas casillas."
+      ][n]}</div>
+      <p class="small">Paso ${n + 1} de 4</p>`;
+  }
+
+  function grafo(n) {
+    const pr = [["1004237", "1.º PageRank"], ["1004856", "2.º"], ["1004833", "3.º"], ["1003317", "4.º"], ["1004767", "5.º"]];
+    const gr = [["1004856", "grado 9"], ["1004767", "grado 9"], ["25400155", "grado 9"], ["1004750", "grado 8"], ["1004833", "grado 8"]];
+    document.getElementById("grafo").innerHTML = `
+      <div class="two-col">
+        <div class="card">
+          <h2>Cuándo nace la arista</h2>
+          <p style="margin-top:8px">unir_compra mira compras anteriores de la misma sesión, con hora estrictamente menor. Otra sesión, aunque sea el mismo producto, no crea la arista. Una compra bloqueada no llama a esta función.</p>
+          <div class="grid3" style="margin-top:12px">
+            <div class="card" style="${n >= 1 ? "" : "opacity:.35"}"><b>Misma sesión</b><p class="small">La segunda compra se une con la anterior. El peso sube si el par ya existía.</p></div>
+            <div class="card" style="${n >= 2 ? "" : "opacity:.35"}"><b>Otra sesión</b><p class="small">100000 en sB y 100000 en sG conviven. No hay arista entre ellas.</p></div>
+            <div class="card" style="${n >= 3 ? "" : "opacity:.35"}"><b>Bloqueada</b><p class="small">E00062426 se quedó en fraude. El grafo no la ve.</p></div>
+          </div>
+        </div>
+        <div class="card" style="${n >= 3 ? "" : "opacity:.4"}">
+          <h2>Influencia no es el grado</h2>
+          <div class="two-col" style="margin-top:8px">
+            <div><p class="small">PageRank</p>${pr.map((r, i) => `<div class="rank"><span>${i + 1}</span><b>${r[0]}</b></div>`).join("")}</div>
+            <div><p class="small">Grado</p>${gr.map((r, i) => `<div class="rank"><span>${i + 1}</span><b>${r[0]}</b></div>`).join("")}</div>
+          </div>
+          <p class="small" style="margin-top:8px">Louvain: 733 comunidades, modularidad 0,91. El primero de cada lista no coincide.</p>
+        </div>
+      </div>
+      <p class="small" style="margin-top:8px">Paso ${n + 1} de 4 · tops de la corrida quick</p>`;
+  }
+
+  function servicio(n) {
+    const words = [
+      ["electronics.smartphone", "samsung"],
+      ["electronics.smartphone", "apple"],
+      ["electronics.clocks", "apple"]
+    ];
+    const show = n === 0 ? [] : n === 1 ? words : words.slice(0, 2);
+    const prefix = ["", "electronics.", "electronics.s", "electronics.smartphone"][n] || "";
+    document.getElementById("servicio").innerHTML = `
+      <div class="trie">
+        <svg viewBox="0 0 760 340">
+          <text x="360" y="36" text-anchor="middle" font-size="18" fill="#1a2428">raíz</text>
+          <line x1="380" y1="48" x2="200" y2="100" stroke="#c5d4d8"/>
+          <line x1="380" y1="48" x2="560" y2="100" stroke="#c5d4d8"/>
+          <rect x="120" y="100" width="160" height="36" rx="6" fill="${n >= 1 ? "#e4f2f3" : "#fff"}" stroke="#0c7480"/>
+          <text x="200" y="124" text-anchor="middle" font-size="16" fill="#1a2428">electronics</text>
+          <rect x="480" y="100" width="160" height="36" rx="6" fill="#fff" stroke="#d5e0e4"/>
+          <text x="560" y="124" text-anchor="middle" font-size="16" fill="#5c6c74">appliances</text>
+          <line x1="200" y1="136" x2="120" y2="200" stroke="${n >= 2 ? "#0c7480" : "#c5d4d8"}"/>
+          <line x1="200" y1="136" x2="280" y2="200" stroke="${n === 1 ? "#0c7480" : "#c5d4d8"}"/>
+          <rect x="40" y="200" width="160" height="36" rx="6" fill="${n >= 2 ? "#e4f2f3" : "#fff"}" stroke="${n >= 2 ? "#0c7480" : "#d5e0e4"}"/>
+          <text x="120" y="224" text-anchor="middle" font-size="16">smartphone</text>
+          <rect x="210" y="200" width="140" height="36" rx="6" fill="${n === 1 ? "#e4f2f3" : "#fff"}" stroke="${n >= 2 ? "#d5e0e4" : "#0c7480"}" opacity="${n >= 2 ? 0.35 : 1}"/>
+          <text x="280" y="224" text-anchor="middle" font-size="16">clocks</text>
+          <text x="40" y="280" font-size="15" fill="#5c6c74">samsung · apple</text>
+          <text x="210" y="280" font-size="15" fill="#5c6c74">apple</text>
+          <text x="40" y="320" font-size="18" fill="#084e56">prefijo «${prefix || "—"}»</text>
+        </svg>
+        <div class="out">
+          <div class="card"><h2>Hasta 5, por BFS</h2>
+            ${show.map((w) => `<p class="mono" style="margin-top:8px">${w[0]} ${w[1]}</p>`).join("") || `<p class="small">El trie espera el prefijo.</p>`}
+          </div>
+          <div class="card" style="${n >= 3 ? "" : "opacity:.4"}">
+            <h2>Panel de la corrida quick</h2>
+            <div class="rank"><span>Eventos en el stream</span><b>39.994</b></div>
+            <div class="rank"><span>Consultas</span><b>39.273</b></div>
+            <div class="rank"><span>Ventas que siguieron</span><b>714</b></div>
+            <div class="rank"><span>Bloqueos</span><b>7</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">${[
+        "Buscar por product_id usa el hash. Buscar por texto usa el trie. El archivo no trae el nombre: la clave es categoría y marca, en minúsculas.",
+        "completar sigue el prefijo. Los hijos salen ordenados, así que la palabra más corta llega antes en el BFS. Aquí siguen vivas smartphone y clocks.",
+        "El prefijo electronics.s apaga clocks. El límite es 5 terminales.",
+        "La búsqueda binaria del cierre halló el id 12719243 en la posición 10.310. El B+Tree, entre 160,86 y 304,25, devolvió 2.950 productos."
+      ][n]}</div>
+      <p class="small">Paso ${n + 1} de 4 · el trie dibujado es una miniatura del catálogo, no el vocabulario completo</p>`;
+  }
+
+  const live = { faseA, faseB, faseC, orq, fraude, reco, grafo, servicio };
+
+  function maxStep(slide) {
+    return slide.dataset.steps ? Math.max(0, +slide.dataset.steps - 1) : 0;
+  }
+
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle("on", i === index));
+    const slide = slides[index];
+    document.body.classList.toggle("dark-slide", slide.classList.contains("dark"));
+    step = Math.max(0, Math.min(step, maxStep(slide)));
+    if (slide.dataset.live) live[slide.dataset.live](step);
+    const noteNodes = document.querySelectorAll(".notes");
+    noteNodes.forEach((n) => n.classList.remove("on"));
+    const own = slide.querySelector(".notes");
+    if (own) own.classList.add("on");
+    document.getElementById("num").textContent = (index + 1) + " / " + slides.length + (maxStep(slide) ? "  ·  paso " + (step + 1) : "");
+    document.getElementById("bar").style.width = ((index + (maxStep(slide) ? step / (maxStep(slide) + 1) : 1)) / slides.length * 100) + "%";
+    document.querySelectorAll("#ov button").forEach((b, i) => b.classList.toggle("here", i === index));
+    const url = new URL(location.href);
+    url.searchParams.set("s", String(index + 1));
+    history.replaceState(null, "", url);
+  }
+
+  function go(i) {
+    index = Math.max(0, Math.min(slides.length - 1, i));
+    step = 0;
+    render();
+  }
+  function next() {
+    const slide = slides[index];
+    if (step < maxStep(slide)) { step += 1; render(); return; }
+    if (index < slides.length - 1) go(index + 1);
+  }
+  function prev() {
+    if (step > 0) { step -= 1; render(); return; }
+    if (index > 0) {
+      index -= 1;
+      step = maxStep(slides[index]);
+      render();
+    }
+  }
+
+  const ov = document.getElementById("ov");
+  slides.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.innerHTML = `<strong>${String(i + 1).padStart(2, "0")}</strong><span>${s.dataset.title}</span>`;
+    b.addEventListener("click", () => { document.body.classList.remove("show-overview"); go(i); });
+    ov.appendChild(b);
+  });
+  document.querySelectorAll("[data-goto]").forEach((b) => {
+    b.addEventListener("click", () => go(+b.dataset.goto - 1));
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(e.key)) {
+      e.preventDefault();
+      if (document.body.classList.contains("show-overview")) return;
+      next();
+    } else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) {
+      e.preventDefault();
+      prev();
+    } else if (e.key === "Home") go(0);
+    else if (e.key === "End") go(slides.length - 1);
+    else if (e.key === "f" || e.key === "F") {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    } else if (e.key === "s" || e.key === "S") document.body.classList.toggle("show-notes");
+    else if (e.key === "o" || e.key === "O" || e.key === "Escape") {
+      document.body.classList.toggle("show-overview");
+    }
+  });
+
+  function fit() {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    document.getElementById("stage").style.transform = `translate(-50%, -50%) scale(${s})`;
+  }
+  addEventListener("resize", fit);
+  fit();
+
+  const params = new URL(location.href).searchParams;
+  const start = +(params.get("s") || "1");
+  const startStep = Math.max(0, +(params.get("p") || "1") - 1);
+  go(start - 1);
+  if (startStep > 0) {
+    step = startStep;
+    render();
+  }
+
+  const probe = [];
+  STREAM.forEach((item) => pushH(probe, item));
+  const order = [];
+  while (probe.length) order.push(popH(probe).nombre);
+  if (order.join(",") !== "Estándar,Programada,Carrito,Vista") {
+    console.error("heap", order);
+  }
+})();
+</script>
+</body>
+</html>
