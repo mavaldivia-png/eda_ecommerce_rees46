@@ -43,23 +43,23 @@
   .slide {
     position: absolute; inset: 0;
     display: none;
-    padding: 52px 72px 78px;
+    padding: 32px 44px 52px;
     flex-direction: column;
   }
   .slide.on { display: flex; }
   .slide.dark { background: var(--night); color: var(--cream); }
   .kicker {
-    margin: 0 0 10px;
-    font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase;
-    color: var(--teal); font-weight: 600;
+    margin: 0 0 8px;
+    font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--teal); font-weight: 700;
   }
   .dark .kicker { color: #8fd0d4; }
-  h1 { margin: 0; font-size: 52px; line-height: 1.08; font-weight: 650; letter-spacing: -0.02em; }
-  .dark h1 { font-size: 68px; max-width: 1500px; }
-  h2 { margin: 0; font-size: 28px; font-weight: 650; }
-  .lede { margin: 16px 0 0; font-size: 26px; line-height: 1.35; max-width: 1500px; color: var(--navy); }
-  .dark .lede { color: #d5e4e4; font-size: 28px; }
-  .small { font-size: 16px; line-height: 1.4; color: var(--muted); }
+  h1 { margin: 0; font-size: 46px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; }
+  .dark h1 { font-size: 64px; max-width: 1700px; }
+  h2 { margin: 0; font-size: 32px; font-weight: 700; }
+  .lede { margin: 12px 0 0; font-size: 28px; line-height: 1.3; max-width: 1700px; color: var(--navy); }
+  .dark .lede { color: #d5e4e4; font-size: 30px; }
+  .small { font-size: 22px; line-height: 1.35; color: var(--muted); }
   .dark .small { color: #b7c9c9; }
   .row { display: flex; gap: 16px; }
   .grow { flex: 1; min-width: 0; }
@@ -74,8 +74,8 @@
     padding: 16px 18px;
   }
   .dark .card { background: var(--night-2); border-color: #2a4a50; color: var(--cream); }
-  .card h2 { font-size: 22px; margin-bottom: 6px; }
-  .card p { margin: 0; font-size: 18px; line-height: 1.35; }
+  .card h2 { font-size: 28px; margin-bottom: 8px; }
+  .card p { margin: 0; font-size: 22px; line-height: 1.3; }
   .tag {
     display: inline-block;
     font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
@@ -130,24 +130,25 @@
   .ov-grid button.here { outline: 2px solid #8fd0d4; }
 
   .idx { display: flex; flex-direction: column; gap: 12px; margin-top: 36px; }
+  .idx { flex: 1; justify-content: space-between; margin-top: 28px; }
   .idx button {
-    display: grid; grid-template-columns: 90px 1fr auto;
+    display: grid; grid-template-columns: 100px 1fr auto;
     align-items: center; gap: 18px;
     text-align: left; cursor: pointer;
     background: transparent; color: inherit;
     border: 0; border-bottom: 1px solid #2a4a50;
-    padding: 14px 0; font-size: 32px;
+    padding: 18px 0; font-size: 40px;
   }
-  .idx button em { font-style: normal; color: #8fd0d4; font-size: 22px; letter-spacing: 0.12em; }
-  .idx button small { color: #9db4b4; font-size: 18px; }
+  .idx button em { font-style: normal; color: #8fd0d4; font-size: 28px; letter-spacing: 0.12em; }
+  .idx button small { color: #9db4b4; font-size: 24px; }
 
   .story { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
   .beat-row { display: grid; grid-template-columns: 120px 1fr; gap: 16px; }
   .beat-row .when { font-family: "SF Mono", ui-monospace, Menlo, monospace; color: var(--teal-d); font-size: 18px; padding-top: 14px; }
   .beat-row .card { border-left: 4px solid var(--teal); }
   .facts { display: flex; flex-direction: column; gap: 12px; }
-  .stat { font-size: 34px; font-weight: 700; letter-spacing: -0.03em; color: var(--teal-d); }
-  .stat span { display: block; font-size: 16px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 2px; }
+  .stat { font-size: 48px; font-weight: 700; letter-spacing: -0.03em; color: var(--teal-d); }
+  .stat span { display: block; font-size: 22px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 4px; }
 
   .pipe { display: flex; flex-direction: column; gap: 14px; margin-top: 22px; }
   .band { display: flex; align-items: stretch; gap: 8px; }
@@ -166,13 +167,14 @@
   .split-label { font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 4px 0; }
 
   .fila {
-    width: 168px; flex: 0 0 168px;
-    background: white; border: 1px solid var(--line); border-radius: 8px;
-    padding: 8px 10px; border-left-width: 4px;
+    flex: 1; min-width: 0;
+    background: white; border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 12px; border-left-width: 6px;
+    display: flex; flex-direction: column; justify-content: center;
   }
-  .fila .h { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 16px; font-weight: 700; }
-  .fila .t { font-size: 15px; font-weight: 650; }
-  .fila .m { font-size: 13px; color: var(--muted); }
+  .fila .h { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 28px; font-weight: 700; }
+  .fila .t { font-size: 22px; font-weight: 700; }
+  .fila .m { font-size: 18px; color: var(--muted); }
   .fila.hist { background: var(--teal-s); }
   .fila.stream { background: var(--amber-s); }
   .fila.tie { outline: 2px solid var(--amber); }
@@ -183,52 +185,54 @@
   .p4 { border-left-color: #3d6f8a; }
   .p5 { border-left-color: var(--green); }
   .p6 { border-left-color: #8aa0a8; }
-  .lane { display: flex; gap: 10px; min-height: 118px; align-items: stretch; }
+  .lane { display: flex; gap: 10px; min-height: 132px; align-items: stretch; }
   .caption {
-    margin-top: 14px; background: white; border-radius: 8px;
-    border: 1px solid var(--line); padding: 12px 16px;
-    font-size: 20px; line-height: 1.35; min-height: 78px;
+    margin-top: 12px; background: white; border-radius: 10px;
+    border: 1px solid var(--line); padding: 14px 18px;
+    font-size: 26px; line-height: 1.3;
   }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
-  .legend i { font-style: normal; font-size: 14px; color: var(--muted); }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  .legend i { font-style: normal; font-size: 20px; color: var(--navy); }
   .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
 
   .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .tile { background: white; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-height: 148px; opacity: 0.38; }
+  .tiles { flex: 1; }
+  .tile { background: white; border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-height: 0; opacity: 0.38; }
   .tile.on { opacity: 1; border-color: var(--teal); background: #f7fcfc; }
-  .tile b { display: block; font-size: 18px; margin-bottom: 6px; }
-  .tile p { margin: 0; font-size: 16px; line-height: 1.35; color: var(--navy); }
+  .tile b { display: block; font-size: 26px; margin-bottom: 8px; }
+  .tile p { margin: 0; font-size: 20px; line-height: 1.3; color: var(--navy); }
 
-  .heap-wrap { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px; margin-top: 8px; min-height: 0; }
-  .box-title { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  .queue { display: flex; gap: 10px; min-height: 120px; align-items: center; }
-  .queue .empty { color: var(--muted); font-size: 18px; }
-  .tree { position: relative; height: 360px; }
+  .heap-wrap { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 22px; margin-top: 8px; flex: 1; min-height: 0; }
+  .heap-wrap > div { display: flex; flex-direction: column; min-height: 0; }
+  .box-title { font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; font-weight: 700; }
+  .queue { display: flex; gap: 10px; min-height: 150px; align-items: stretch; }
+  .queue .empty { color: var(--navy); font-size: 28px; background: white; border: 2px dashed var(--line); border-radius: 12px; padding: 28px 20px; flex: 1; display: flex; align-items: center; }
+  .tree { position: relative; flex: 1; min-height: 420px; }
   .hn {
-    position: absolute; width: 150px; background: white;
-    border: 1px solid var(--line); border-left-width: 4px; border-radius: 8px;
-    padding: 8px 10px; transform: translate(-50%, -50%);
+    position: absolute; width: 210px; background: white;
+    border: 1px solid var(--line); border-left-width: 6px; border-radius: 10px;
+    padding: 12px 14px; transform: translate(-50%, -50%);
   }
-  .hn .h { font-size: 14px; font-weight: 700; }
-  .hn .m { font-size: 13px; color: var(--muted); font-family: "SF Mono", ui-monospace, Menlo, monospace; }
-  .exits { display: flex; gap: 8px; margin-top: 8px; min-height: 36px; }
-  .exit-pill { font-size: 14px; background: var(--teal-s); color: var(--teal-d); border-radius: 999px; padding: 4px 10px; }
+  .hn .h { font-size: 24px; font-weight: 700; }
+  .hn .m { font-size: 20px; color: var(--muted); font-family: "SF Mono", ui-monospace, Menlo, monospace; }
+  .exits { display: flex; gap: 10px; margin-top: 8px; min-height: 48px; flex-wrap: wrap; }
+  .exit-pill { font-size: 22px; background: var(--teal-s); color: var(--teal-d); border-radius: 999px; padding: 8px 14px; font-weight: 700; }
 
-  .slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; }
-  .slot { background: white; border: 1px dashed var(--line); border-radius: 10px; min-height: 150px; padding: 14px; }
+  .slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 12px; flex: 1; }
+  .slot { background: white; border: 1px dashed var(--line); border-radius: 10px; min-height: 180px; padding: 16px; }
   .slot.fill { border-style: solid; }
-  .slot .n { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-  .slot b { display: block; margin: 8px 0 4px; font-size: 18px; }
+  .slot .n { font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .slot b { display: block; margin: 12px 0 6px; font-size: 28px; }
   .slot.from-v { background: var(--green-s); border-color: var(--green); }
   .slot.from-g { background: #f3eef8; border-color: #6a4e8a; }
 
-  .trie { display: flex; gap: 28px; align-items: flex-start; }
-  .trie svg { width: 760px; height: 340px; }
+  .trie { display: flex; gap: 28px; align-items: stretch; flex: 1; min-height: 0; }
+  .trie svg { width: 52%; height: 100%; }
   .out { display: flex; flex-direction: column; gap: 8px; flex: 1; }
   .out .card b { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 16px; }
 
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
-  .rank { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 18px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; flex: 1; min-height: 0; }
+  .rank { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 24px; }
   .rank b { font-family: "SF Mono", ui-monospace, Menlo, monospace; }
 
   .decision { border-top: 4px solid var(--line); }
@@ -238,12 +242,103 @@
   .decision.dim { opacity: 0.35; }
 
   .bits { display: flex; gap: 6px; margin-top: 8px; }
-  .bit { width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--line); display: grid; place-items: center; font-family: ui-monospace, Menlo, monospace; font-size: 14px; background: white; }
+  .bit { width: 44px; height: 44px; border-radius: 6px; border: 1px solid var(--line); display: grid; place-items: center; font-family: ui-monospace, Menlo, monospace; font-size: 22px; background: white; }
   .bit.onb { background: var(--teal); color: white; border-color: var(--teal); }
 
   .frag { opacity: 0; }
   .frag.on { opacity: 1; }
-  .src { margin-top: auto; font-size: 14px; color: var(--muted); }
+  .src { margin-top: 8px; font-size: 18px; color: var(--muted); }
+  #faseA, #faseB, #faseC, #orq, #fraude, #reco, #grafo, #servicio {
+    flex: 1; display: flex; flex-direction: column; min-height: 0; margin-top: 10px;
+  }
+  #orq .grid3, #fraude .grid3 { flex: 1; align-items: stretch; }
+  #fraude .grid3 + .grid3 { margin-top: 12px; }
+  .decision h2 { font-size: 34px; }
+  .prob { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; min-height: 0; }
+  .prob article { background: white; border: 1px solid var(--line); border-radius: 12px; padding: 16px 14px 14px; display: flex; flex-direction: column; border-top: 8px solid var(--teal); }
+  .viz { margin-top: 12px; padding-top: 8px; display: flex; gap: 6px; align-items: flex-end; flex: 1; min-height: 140px; }
+  .b-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .b-grid div { background: white; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; justify-content: center; }
+  .b-grid b { font-size: 24px; }
+  .b-grid span { font-size: 18px; color: var(--navy); }
+  .viz i { display: block; flex: 1; border-radius: 4px 4px 0 0; background: #d5e0e4; }
+  .viz i.on { background: var(--red); }
+  .viz i.find { background: var(--teal); }
+  .viz .box { flex: 1; height: 72px; border: 2px solid var(--line); border-radius: 8px; background: white; }
+  .viz .box.go { border-color: var(--green); background: var(--green-s); }
+  .viz .pill { flex: 1; border-radius: 8px; padding: 10px 6px; text-align: center; font-style: normal; font-size: 16px; font-weight: 700; }
+  .dot { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 750; color: white; }
+  .dot.sm { width: 36px; height: 36px; font-size: 14px; background: #8aa0a8; align-self: center; }
+  .dot.lg { width: 88px; height: 88px; font-size: 16px; background: #6a4e8a; }
+  .prob .n { font-size: 42px; font-weight: 750; color: var(--teal-d); line-height: 1; }
+  .prob h2 { font-size: 28px; margin: 12px 0 8px; line-height: 1.1; }
+  .prob p { margin: 0; font-size: 22px; line-height: 1.25; }
+  .prob-foot { margin-top: 12px; display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 12px; }
+  .flow { flex: 1; display: flex; flex-direction: column; margin-top: 12px; min-height: 0; }
+  .flow-head { background: white; border: 1px solid var(--line); border-top: 8px solid var(--teal); border-radius: 12px; padding: 14px 16px; }
+  .flow-k { font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal-d); font-weight: 750; }
+  .flow-steps { display: flex; align-items: stretch; gap: 8px; margin-top: 10px; }
+  .flow-steps .st { flex: 1; background: var(--teal-s); border-radius: 8px; padding: 10px 12px; }
+  .flow-steps b { display: block; font-size: 26px; }
+  .flow-steps span { display: block; font-size: 18px; color: var(--navy); margin-top: 4px; }
+  .flow-steps .arrow { display: flex; align-items: center; font-size: 36px; color: var(--teal); }
+  .fork { height: 28px; position: relative; }
+  .fork .stem { position: absolute; left: 50%; top: 0; width: 4px; height: 14px; background: var(--navy); }
+  .fork .arm { position: absolute; left: 25%; right: 25%; top: 14px; height: 4px; background: var(--navy); }
+  .fork .arm:before, .fork .arm:after { content: ""; position: absolute; top: 0; width: 4px; height: 14px; background: var(--navy); }
+  .fork .arm:before { left: 0; }
+  .fork .arm:after { right: 0; }
+  .flow-split { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-height: 0; }
+  .branch-b, .branch-c { border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; min-height: 0; }
+  .branch-b { background: #e4f2f3; border: 3px solid var(--teal); }
+  .branch-c { background: #fbf4e6; border: 3px solid var(--amber); }
+  .pct { font-size: 72px; font-weight: 750; line-height: 0.9; }
+  .branch-b h2, .branch-c h2 { font-size: 40px; margin: 4px 0; }
+  .role { font-size: 24px; margin: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chips span { background: white; border-radius: 8px; padding: 10px 12px; font-size: 22px; font-weight: 700; }
+  .c-path { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .c-common, .c-end { background: white; border-radius: 8px; padding: 12px 14px; font-size: 24px; font-weight: 750; text-align: center; }
+  .c-end { margin-top: auto; }
+  .viz.mid { align-items: center; justify-content: center; }
+  .viz.mid .pill { height: 72px; font-size: 22px; display: flex; align-items: center; justify-content: center; }
+  .c-fork { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .c-fork div { background: white; border-radius: 8px; padding: 14px 16px; min-height: 108px; }
+  .chips { margin-top: auto; }
+  .c-fork b { display: block; font-size: 24px; }
+  .c-fork span { display: block; font-size: 20px; margin-top: 4px; }
+  .fill-graph { flex: 1; margin-top: 12px; min-height: 210px; display: flex; flex-direction: column; }
+  .track { position: relative; flex: 1; background: white; border: 1px solid var(--line); border-radius: 12px; margin-top: 8px; }
+  .track:before { content: ""; position: absolute; left: 24px; right: 24px; top: 58%; height: 4px; background: #c5d4d8; }
+  .tick { position: absolute; top: 18px; transform: translateX(-50%); text-align: center; }
+  .tick b { display: block; font-size: 20px; }
+  .tick span { display: block; font-size: 16px; color: var(--muted); }
+  .hashg { flex-direction: row; gap: 16px; }
+  .hash-slot, .hash-no { flex: 1; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; justify-content: center; }
+  .hash-slot { background: var(--teal-s); border: 3px solid var(--teal); }
+  .hash-no { background: var(--red-s); border: 3px solid var(--red); }
+  .hash-slot b, .hash-no b { font-size: 32px; display: block; margin: 8px 0; }
+  .hash-slot span, .hash-no span { font-size: 24px; }
+  .prios { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; }
+  .prio-row { display: grid; grid-template-columns: 70px 220px 1fr; align-items: center; background: white; border-radius: 8px; border: 1px solid var(--line); border-left-width: 8px; padding: 0 16px; font-size: 24px; }
+  .prio-row b { font-size: 32px; }
+  .prio-row em { font-style: normal; color: var(--muted); }
+  .splitg { flex-direction: row; gap: 12px; }
+  .split-b, .split-c { flex: 1; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; padding: 18px 22px; }
+  .split-b { background: var(--teal-s); flex: 1.5; }
+  .split-c { background: var(--amber-s); }
+  .split-b b, .split-c b { font-size: 72px; line-height: 1; }
+  .split-b span, .split-c span { font-size: 28px; font-weight: 700; }
+  .ach { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px; margin-top: 16px; min-height: 0; }
+  .ach article { background: white; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: center; }
+  .ach .big { font-size: 54px; font-weight: 750; color: var(--teal-d); line-height: 1; }
+  .ach h2 { font-size: 30px; margin: 8px 0; }
+  .ach p { margin: 0; font-size: 22px; }
+  .close-line { margin: 14px 0 0; font-size: 26px; font-weight: 650; }
+  .nums { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .nums article { background: white; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; }
+  .nums b { font-size: 42px; color: var(--teal-d); }
+  .nums span { font-size: 22px; }
   a { color: inherit; }
 
   @media (prefers-reduced-motion: reduce) {
@@ -265,65 +360,77 @@
     <p class="kicker">Recorrido · 15 minutos</p>
     <h1>Cinco movimientos</h1>
     <div class="idx">
-      <button data-goto="3"><em>01</em> El problema, en una visita real <small>2 min</small></button>
-      <button data-goto="5"><em>02</em> Fase A · del archivo al corte <small>3 min</small></button>
-      <button data-goto="6"><em>03</em> Rama B escribe, rama C atiende <small>4 min</small></button>
-      <button data-goto="9"><em>04</em> Fraude, recomendación, co-compra <small>5 min</small></button>
-      <button data-goto="13"><em>05</em> Qué se eligió, y qué no se cita <small>1 min</small></button>
+      <button data-goto="3"><em>01</em> El problema <small>2 min</small></button>
+      <button data-goto="4"><em>02</em> La solución: fase A y dos ramas <small>2 min</small></button>
+      <button data-goto="5"><em>03</em> Cómo se parte el lote <small>3 min</small></button>
+      <button data-goto="6"><em>04</em> Rama B entrena, rama C atiende <small>4 min</small></button>
+      <button data-goto="14"><em>05</em> Qué se logró <small>1 min</small></button>
     </div>
     <div class="notes">Si preguntan por una etapa, O abre el índice de las 14 pantallas. Esta diapositiva salta a los cinco bloques.</div>
   </section>
 
   <section class="slide" data-title="El problema">
     <p class="kicker">01 · Problema</p>
-    <h1>Miró un Xiaomi y lo compró 47 segundos después.</h1>
-    <div class="grid2" style="margin-top:22px">
-      <div>
-        <p class="small">Usuario 513351129 · 1 de noviembre de 2019 · misma fuente REES46. El notebook corre octubre; esta visita muestra el embudo que el pipeline tiene que respetar.</p>
-        <div class="story">
-          <div class="beat-row"><div class="when">00:00:17</div><div class="card"><b>view</b> · producto 1005161 · electronics.smartphone · xiaomi · 211,92</div></div>
-          <div class="beat-row" style="margin-top:10px"><div class="when">00:01:04</div><div class="card"><b>purchase</b> · el mismo producto, la misma sesión</div></div>
-        </div>
-        <p class="small" style="margin-top:14px">Una sesión puede traer varias compras y el archivo no tiene order_id. Dos compras de la misma sesión son la orden. La misma acción puede repetirse: por eso el duplicado no es un caso inventado.</p>
-      </div>
-      <div class="facts">
-        <div class="card"><div class="stat">94,2 %<span>de noviembre 2019 son vistas. Carrito 4,5 %. Compra 1,4 %.</span></div></div>
-        <div class="card"><div class="stat">6 campos<span>Hora, tipo, producto, precio, usuario y sesión tienen que venir. Marca y categoría vacías se rellenan, no se tiran.</span></div></div>
-        <div class="card"><div class="stat">Semilla 42<span>El CSV no trae prioridad, dispositivo, pago ni etiqueta de fraude. Eso se genera. El comportamiento es el del archivo.</span></div></div>
-      </div>
+    <h1>Hay que decidir sobre un flujo que no espera, y que es casi puro mirar.</h1>
+    <div class="prob">
+      <article><div class="n">94 %</div><h2>Lo urgente queda atrás</h2><p>En un mes real, 94 de cada 100 eventos son vistas. Un pago o un fraude no pueden hacer esa cola.</p><div class="viz" aria-hidden="true"><i style="height:42%"></i><i style="height:62%"></i><i style="height:80%"></i><i style="height:50%"></i><i style="height:100%"></i><i style="height:68%"></i><i style="height:74%"></i><i style="height:46%"></i><i style="height:88%"></i><i class="on" style="height:24%"></i></div></article>
+      <article><div class="n">1</div><h2>Encontrar el producto</h2><p>Precio, categoría y un rango, sin recorrer el catálogo fila por fila.</p><div class="viz" aria-hidden="true"><i style="height:36%"></i><i style="height:58%"></i><i class="find" style="height:100%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:30%"></i></div></article>
+      <article><div class="n">5</div><h2>Sugerir en la sesión</h2><p>Mientras la persona sigue adentro, cinco productos: uno parecido y los que se vieron juntos.</p><div class="viz"><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div></div></article>
+      <article><div class="n">0</div><h2>No cortar un tal vez</h2><p>Marcar lo sospechoso. Bloquear solo cuando hay confirmación. Una sospecha no es una venta perdida.</p><div class="viz mid"><div class="pill" style="background:#fbf4e6;color:#8a5a08">tal vez</div><div class="pill" style="background:#f8eceb;color:#9d342c">bloquear</div></div></article>
+      <article><div class="n">2</div><h2>Ver la red</h2><p>Qué se compra junto, y qué producto influye. Influir no es tener más enlaces.</p><div class="viz mid" style="justify-content:space-around"><i class="dot sm">grado</i><i class="dot lg">influencia</i></div></article>
     </div>
-    <div class="notes">El enunciado pide atender lo urgente, consultar un producto, recomendar, marcar sospecha sin bloquear por una sospecha, y mostrar influencia. Esta visita es el hilo. Los campos que faltan se dicen en voz alta: no están en Kaggle.</div>
+    <div class="prob-foot">
+      <div class="card"><h2>Así se ve un evento</h2><p>1 nov 2019, usuario 513351129: a las 00:00:17 mira un Xiaomi y a las 00:01:04 lo compra. Misma sesión. El archivo no trae número de orden: dos compras de la misma sesión son la orden.</p></div>
+      <div class="card"><h2>Lo que el CSV no trae</h2><p>Prioridad, dispositivo, pago y fraude. Se generan con semilla 42. El comportamiento —vista, carrito, compra— es el de REES46.</p></div>
+    </div>
+    <div class="notes">Esta diapositiva es el problema, no la solución. Cinco decisiones. La visita del Xiaomi solo muestra la forma del dato: mirar y, a veces, comprar. El 94 % es noviembre 2019, el mismo dataset. El notebook corre octubre.</div>
   </section>
 
-  <section class="slide" data-title="Mapa">
-    <p class="kicker">01 · Problema</p>
-    <h1>Diez etapas, un corte, una sola rama por evento.</h1>
-    <div class="pipe">
-      <div class="split-label">Fase A · el lote entero, todavía nadie consulta</div>
-      <div class="band">
-        <div class="node core"><b>0 · Cola FIFO</b><span>deque. Llega por el fondo, sale por el frente.</span></div>
-        <div class="node core"><b>1 · Limpieza</b><span>Hash de duplicados y merge sort por (hora, índice).</span></div>
-        <div class="node core"><b>2 · Min-heap</b><span>Clave (prioridad, orden de la cola).</span></div>
+  <section class="slide" data-title="Solución">
+    <p class="kicker">02 · Solución</p>
+    <h1>La fase A parte el lote. De ahí salen dos ramas.</h1>
+    <div class="flow">
+      <div class="flow-head">
+        <div class="flow-k">Fase A · cabeza común · el archivo entero</div>
+        <div class="flow-steps">
+          <div class="st"><b>Lectura</b><span>bloques, en el orden del CSV</span></div>
+          <div class="arrow">→</div>
+          <div class="st"><b>Limpieza</b><span>hash y merge sort</span></div>
+          <div class="arrow">→</div>
+          <div class="st"><b>Etiqueta</b><span>prioridad 1 a 6</span></div>
+          <div class="arrow">→</div>
+          <div class="st"><b>Corte</b><span>60 % y 40 % en el tiempo</span></div>
+        </div>
       </div>
-      <div class="split-label">Corte 60 / 40 sobre el lote ya ordenado · la fase B escribe, la fase C lee</div>
-      <div class="band">
-        <div class="node store"><b>3 · Hash, dispersa, LRU</b><span>Ficha, conteo usuario-producto, 256 recientes.</span></div>
-        <div class="node store"><b>4 · B+Tree</b><span>Precio. Rango caminando las hojas.</span></div>
-        <div class="node store"><b>5 · KD-Tree</b><span>KNN exacto, línea base del vector.</span></div>
-        <div class="node fraud"><b>6 · Bloom + CMS</b><span>Se arman antes de ver el stream.</span></div>
-        <div class="node reco"><b>7 · HNSW</b><span>14 dimensiones. 1 cupo del top 5.</span></div>
-        <div class="node graph"><b>8 · Dos grafos</b><span>Sesión, y co-compra con PageRank y Louvain.</span></div>
-      </div>
-      <div class="split-label">El orquestador abre una rama · vista o carrito, o compra</div>
-      <div class="band">
-        <div class="node reco"><b>Recomendación</b><span>1 vecino HNSW + 4 del grafo de sesión.</span></div>
-        <div class="node fraud"><b>Fraude</b><span>Tal vez, luego confirmar. Bloquear no crea arista.</span></div>
-        <div class="node graph"><b>Co-compra</b><span>Solo compras que siguieron, misma sesión, hora anterior.</span></div>
-        <div class="node svc"><b>9 · Trie y panel</b><span>Texto por categoría y marca. Top-K. Dashboard.</span></div>
+      <div class="fork" aria-hidden="true"><div class="stem"></div><div class="arm"></div></div>
+      <div class="flow-split">
+        <article class="branch-b">
+          <div class="pct">60 %</div>
+          <h2>Rama B · entrena</h2>
+          <p class="role">Estas filas no se atienden. Se quedan escritas para que la otra rama las lea.</p>
+          <div class="b-grid">
+            <div><b>Hash y LRU</b><span>ficha del producto y lo recién visto</span></div>
+            <div><b>B+Tree y KD-Tree</b><span>precio por rango, y el KNN exacto</span></div>
+            <div><b>Bloom, Count-Min, HNSW</b><span>el filtro y el vecino, antes del stream</span></div>
+            <div><b>Grafos y trie</b><span>sesión, co-compra y el texto de búsqueda</span></div>
+          </div>
+        </article>
+        <article class="branch-c">
+          <div class="pct">40 %</div>
+          <h2>Rama C · atiende</h2>
+          <p class="role">La cola consulta lo que la rama B dejó. Cada evento abre una sola salida.</p>
+          <div class="c-path">
+            <div class="c-common">Cola FIFO → min-heap</div>
+            <div class="c-fork">
+              <div><b>Vista o carrito</b><span>1 vecino HNSW y 4 del grafo de sesión</span></div>
+              <div><b>Compra</b><span>Bloom avisa. El conjunto exacto bloquea o deja seguir hacia la co-compra</span></div>
+            </div>
+            <div class="c-end">Servicio · recomendación, alerta o arista</div>
+          </div>
+        </article>
       </div>
     </div>
-    <p class="src">La numeración es la del enunciado. El recorrido es el de los canvas Fase A y ramas B y C.</p>
-    <div class="notes">Señalar el corte antes que las cajas de la derecha. La fase B no atiende gente: llena estructuras. La fase C no reentrena el Bloom: consulta lo que el histórico ya escribió.</div>
+    <div class="notes">Esto ya es la solución, no el problema. Señalar la horquilla. La fase A es común. La rama B escribe. La rama C lee y, adentro, se vuelve a partir según el tipo de evento. No es una lista de diez cajas en fila.</div>
   </section>
 
   <section class="slide" data-title="Fase A" data-live="faseA" data-steps="5">
@@ -383,45 +490,47 @@
   </section>
 
   <section class="slide" data-title="Decisiones">
-    <p class="kicker">05 · Evidencia que sí se puede decir</p>
-    <h1>Cada familia tiene un rival. Estos números salen de la corrida.</h1>
-    <div class="grid2" style="margin-top:16px; align-items:start">
-      <div class="card" style="padding:8px 18px">
-        <div class="rank"><span>Duplicados exactos, tabla hash, antes de ordenar</span><b>17</b></div>
-        <div class="rank"><span>Filas que siguen, de 100.000 leídas</span><b>99.983</b></div>
-        <div class="rank"><span>Histórico / cola</span><b>59.989 / 39.994</b></div>
-        <div class="rank"><span>Catálogo · peor caso binario</span><b>20.621 · 15</b></div>
-        <div class="rank"><span>Id del medio, posición hallada</span><b>12719243 · 10310</b></div>
-        <div class="rank"><span>KD-Tree contra fuerza bruta</span><b>correcta</b></div>
-        <div class="rank"><span>Rango B+Tree 160,86–304,25</span><b>2.950</b></div>
-        <div class="rank"><span>Louvain · modularidad</span><b>733 · 0,91</b></div>
-        <div class="rank"><span>Bloqueos en el stream</span><b>7</b></div>
-      </div>
-      <div>
-        <div class="card" style="margin-bottom:12px">
-          <h2>El rival de cada elección</h2>
-          <p>Bloom y Count-Min contra el conjunto exacto: tiempo, memoria, falsos positivos y error de frecuencia. MinHash+LSH contra Jaccard y contra SimHash. HNSW contra KNN exacto y contra IVF: tiempo, recall@K y memoria. PageRank contra el grado. Louvain contra Label Propagation: modularidad, tiempo y estabilidad.</p>
-        </div>
-        <div class="card" style="background: var(--amber-s); border-color: #ead7b0">
-          <h2>Lo que esta pantalla no cita</h2>
-          <p>Las figuras de <span class="mono">pruebas_algoritmos/figuras</span> salieron con fuente sintética. El propio README pide no citarlas. Cuando <span class="mono">00_todas_las_comparativas</span> corra con <span class="mono">2019-Oct.csv</span>, esas curvas reemplazan este recuadro.</p>
-        </div>
-      </div>
+    <p class="kicker">Evidencia de la corrida quick · octubre 2019</p>
+    <h1>Lo que el programa ya midió, y contra quién se compara.</h1>
+    <div class="nums">
+      <article><b>17 → 99.983</b><span>Duplicados exactos fuera, por hash, antes de ordenar. De 100.000 filas leídas.</span></article>
+      <article><b>59.989 / 39.994</b><span>Rama B y rama C. El primero del stream es E00059989.</span></article>
+      <article><b>15</b><span>Comparaciones de la búsqueda binaria, peor caso, en un catálogo de 20.621. El id 12719243 quedó en la posición 10.310.</span></article>
+      <article><b>2.950</b><span>Productos que el B+Tree devolvió entre 160,86 y 304,25. El KD-Tree coincidió con la fuerza bruta.</span></article>
+      <article><b>7</b><span>Compras bloqueadas. 714 siguieron. Bloom y Count-Min avisan; el conjunto exacto es el que corta.</span></article>
+      <article><b>1004237 ≠ 1004856</b><span>Primero por PageRank y primero por grado. Louvain: 733 comunidades, modularidad 0,91.</span></article>
     </div>
-    <p class="src">Corrida guardada en el notebook v2, modo quick, octubre 2019, semilla 42. El catálogo de 20.621 y las 17 filas duplicadas están en la misma corrida.</p>
+    <p class="src">Cada familia se mide contra un rival: conjunto exacto, Jaccard y SimHash, KNN e IVF, grado, Label Propagation. Las figuras de la carpeta de pruebas son sintéticas y no se citan.</p>
     <div class="notes">Si preguntan por los gráficos de tiempo, decir que la carpeta de figuras es validación sintética. Los números de esta diapositiva sí son de octubre. Merge sort se eligió porque el corte tiene que ser el mismo orden con 99.983 filas y con bloques de 100.000. Quicksort se degrada si el pivote cae en un extremo y el CSV ya viene casi ordenado por tiempo.</div>
   </section>
 
-  <section class="slide dark" data-title="Cierre">
-    <p class="kicker">Cierre</p>
-    <h1>La salida de una etapa es la entrada de la siguiente.</h1>
-    <div class="grid3" style="margin-top:36px">
-      <div class="card"><p class="tag">Vista</p><h2 style="margin-top:10px">Recomendación</h2><p>E00059989 sale del heap con prioridad 6 y deja cinco productos.</p></div>
-      <div class="card"><p class="tag">Compra confirmada</p><h2 style="margin-top:10px">Alerta</h2><p>E00062426 tiene prioridad 1. El conjunto exacto bloquea. No hay arista.</p></div>
-      <div class="card"><p class="tag">Compra que sigue</p><h2 style="margin-top:10px">Arista, o ninguna</h2><p>E00060242 se permite. En su sesión no había una compra anterior: cero aristas nuevas.</p></div>
+  <section class="slide" data-title="Cierre">
+    <p class="kicker">Cierre · qué se logró</p>
+    <h1>El flujo ya no se recorre a mano. El programa lo parte y lo responde.</h1>
+    <div class="ach">
+      <article>
+        <div class="big">1 recorrido</div>
+        <h2>De las 100.000 filas sale un corte</h2>
+        <p>99.983 quedan limpias. 59.989 entrenan la rama B. 39.994 entran a la cola de la rama C.</p>
+      </article>
+      <article>
+        <div class="big">1 a 6</div>
+        <h2>Lo urgente adelanta a la vista</h2>
+        <p>El min-heap ordena por prioridad. Si empatan, gana quien llegó antes a la cola. Una vista no pasa delante de un pago.</p>
+      </article>
+      <article>
+        <div class="big">7 y 714</div>
+        <h2>Se bloquea con confirmación</h2>
+        <p>Siete compras se cortaron porque el conjunto exacto lo confirmó. 714 siguieron. Una sospecha del Bloom no basta para cortar.</p>
+      </article>
+      <article>
+        <div class="big">3 salidas</div>
+        <h2>Recomendación, alerta o arista</h2>
+        <p>E00059989 deja un top 5. E00062426 se bloquea y no crea arista. El PageRank y el grado no eligen al mismo producto.</p>
+      </article>
     </div>
-    <p class="lede" style="margin-top:36px">Preguntas. Las diapositivas 5 a 12 se pueden volver a correr.</p>
-    <div class="notes">Cerrar con las tres salidas observables que pide la rúbrica: recomendación, alerta, grafo. Ofrecer repetir el heap o el fraude si la pregunta va por ahí.</div>
+    <p class="close-line">Eso resuelve el problema: un evento entra por la fase A y sale, por una sola rama, con una respuesta que la siguiente etapa puede leer.</p>
+    <div class="notes">Cerrar con los cuatro resultados, no con una frase abstracta. Si preguntan, repetir el heap o el fraude. Las tres salidas que pide la rúbrica están en la última tarjeta.</div>
   </section>
 
   <div class="chrome">
@@ -490,7 +599,35 @@
       ${split ? `<i><b class="sw" style="background:#e4f2f3"></b>fase B</i><i><b class="sw" style="background:#fbf4e6"></b>fase C</i>` : ""}
     </div>` : "";
     document.getElementById("faseA").innerHTML =
-      `<div class="lane">${htmlCards}</div>${legend}<div class="caption">${textos[n]}</div><p class="small" style="margin-top:8px">Paso ${n + 1} de 5 · miniatura de 8 filas, mismas reglas que el notebook</p>`;
+      `<div class="lane">${htmlCards}</div>${legend}<div class="caption">${textos[n]}</div>${graficoA(n)}<p class="small" style="margin-top:6px">Paso ${n + 1} de 5 · miniatura de 8 filas, mismas reglas que el notebook</p>`;
+  }
+
+  function graficoA(n) {
+    if (n === 0 || n === 2) {
+      const cells = POR_TIEMPO.map((f) => {
+        const tie = n === 2 && (f.id === 1 || f.id === 6) ? "tie" : "";
+        return `<div class="fila p${f.prio} ${tie}"><div class="h">${f.hora}</div><div class="t">${f.etq}</div><div class="m">${n === 2 && tie ? "empate · fila " + f.id : "fila " + f.id}</div></div>`;
+      }).join("");
+      const titulo = n === 0
+        ? "El mismo día, ya en el reloj. Arriba siguen en el orden del archivo."
+        : "Las dos de las 09:40 empatan. Gana la fila 1, porque el índice es menor.";
+      return `<div class="fill-graph"><div class="box-title">${titulo}</div><div class="lane" style="flex:1">${cells}</div></div>`;
+    }
+    if (n === 1) {
+      return `<div class="fill-graph hashg"><div class="hash-slot"><div class="box-title">Casilla del hash</div><b>09:40 · compra · 100000 · u12 · sB</b><span>fila 1, ocupada</span></div><div class="hash-no"><div class="box-title">La copia</div><b>La misma clave</b><span>Se descarta sin recorrer el lote.</span></div></div>`;
+    }
+    if (n === 3) {
+      const rows = [
+        ["1", "Fraude", "sale primero", "p1"],
+        ["2", "Express", "compra y h % 5 = 0", "p2"],
+        ["3", "Estándar", "compra, bucket 1, 2 o 3", "p3"],
+        ["4", "Programada", "compra, bucket 4", "p4"],
+        ["5", "Carrito", "no pasa por la pregunta de fraude", "p5"],
+        ["6", "Vista", "sale al final", "p6"]
+      ];
+      return `<div class="fill-graph prios">${rows.map((r) => `<div class="prio-row ${r[3]}"><b>${r[0]}</b><span>${r[1]}</span><em>${r[2]}</em></div>`).join("")}</div>`;
+    }
+    return `<div class="fill-graph splitg"><div class="split-b"><b>59.989</b><span>Rama B · entrena</span></div><div class="split-c"><b>39.994</b><span>Rama C · atiende</span></div></div>`;
   }
 
   function faseB(n) {
