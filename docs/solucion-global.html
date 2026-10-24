@@ -271,6 +271,7 @@
   .dot.sm { width: 36px; height: 36px; font-size: 14px; background: #8aa0a8; align-self: center; }
   .dot.lg { width: 88px; height: 88px; font-size: 16px; background: #6a4e8a; }
   .prob .n { font-size: 42px; font-weight: 750; color: var(--teal-d); line-height: 1; }
+  .prob .num-note { margin: 6px 0 0; font-size: 18px; font-weight: 700; color: var(--teal-d); }
   .prob h2 { font-size: 28px; margin: 12px 0 8px; line-height: 1.1; }
   .prob p { margin: 0; font-size: 22px; line-height: 1.25; }
   .prob-foot { margin-top: 12px; display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 12px; }
@@ -300,7 +301,9 @@
   .c-path { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
   .c-common, .c-end { background: white; border-radius: 8px; padding: 12px 14px; font-size: 24px; font-weight: 750; text-align: center; }
   .c-end { margin-top: auto; }
-  .viz.mid { align-items: center; justify-content: center; }
+  .prob article.pair-card { display: grid; grid-template-rows: 1fr auto 1fr; }
+  .prob article.pair-card .copy { grid-row: 1; align-self: start; }
+  .viz.mid { grid-row: 2; align-self: center; align-items: center; justify-content: center; margin-top: 0; flex: none; width: 100%; min-height: 0; }
   .viz.mid .pill { height: 72px; font-size: 22px; display: flex; align-items: center; justify-content: center; }
   .c-fork { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .c-fork div { background: white; border-radius: 8px; padding: 14px 16px; min-height: 108px; }
@@ -332,6 +335,9 @@
   .ach { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px; margin-top: 16px; min-height: 0; }
   .ach article { background: white; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: center; }
   .ach .big { font-size: 54px; font-weight: 750; color: var(--teal-d); line-height: 1; }
+  .ach .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .ach .pair b { display: block; font-size: 52px; color: var(--teal-d); line-height: 1; }
+  .ach .pair span { display: block; margin-top: 6px; font-size: 20px; font-weight: 650; color: var(--navy); }
   .ach h2 { font-size: 30px; margin: 8px 0; }
   .ach p { margin: 0; font-size: 22px; }
   .close-line { margin: 14px 0 0; font-size: 26px; font-weight: 650; }
@@ -373,11 +379,11 @@
     <p class="kicker">01 · Problema</p>
     <h1>Hay que decidir sobre un flujo que no espera, y que es casi puro mirar.</h1>
     <div class="prob">
-      <article><div class="n">94 %</div><h2>Lo urgente queda atrás</h2><p>En un mes real, 94 de cada 100 eventos son vistas. Un pago o un fraude no pueden hacer esa cola.</p><div class="viz" aria-hidden="true"><i style="height:42%"></i><i style="height:62%"></i><i style="height:80%"></i><i style="height:50%"></i><i style="height:100%"></i><i style="height:68%"></i><i style="height:74%"></i><i style="height:46%"></i><i style="height:88%"></i><i class="on" style="height:24%"></i></div></article>
-      <article><div class="n">1</div><h2>Encontrar el producto</h2><p>Precio, categoría y un rango, sin recorrer el catálogo fila por fila.</p><div class="viz" aria-hidden="true"><i style="height:36%"></i><i style="height:58%"></i><i class="find" style="height:100%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:30%"></i></div></article>
-      <article><div class="n">5</div><h2>Sugerir en la sesión</h2><p>Mientras la persona sigue adentro, cinco productos: uno parecido y los que se vieron juntos.</p><div class="viz"><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div></div></article>
-      <article><div class="n">0</div><h2>No cortar un tal vez</h2><p>Marcar lo sospechoso. Bloquear solo cuando hay confirmación. Una sospecha no es una venta perdida.</p><div class="viz mid"><div class="pill" style="background:#fbf4e6;color:#8a5a08">tal vez</div><div class="pill" style="background:#f8eceb;color:#9d342c">bloquear</div></div></article>
-      <article><div class="n">2</div><h2>Ver la red</h2><p>Qué se compra junto, y qué producto influye. Influir no es tener más enlaces.</p><div class="viz mid" style="justify-content:space-around"><i class="dot sm">grado</i><i class="dot lg">influencia</i></div></article>
+      <article><div class="n">94 %</div><p class="num-note">de los eventos de noviembre 2019 son vistas</p><h2>Lo urgente queda atrás</h2><p>En ese mismo mes el carrito es el 4,5 % y la compra el 1,4 %. Un pago o un fraude no pueden hacer la cola de las miradas.</p><div class="viz" aria-hidden="true"><i style="height:42%"></i><i style="height:62%"></i><i style="height:80%"></i><i style="height:50%"></i><i style="height:100%"></i><i style="height:68%"></i><i style="height:74%"></i><i style="height:46%"></i><i style="height:88%"></i><i class="on" style="height:24%"></i></div></article>
+      <article><h2>Encontrar el producto</h2><p>Precio, categoría y un rango, sin recorrer el catálogo fila por fila.</p><div class="viz" aria-hidden="true"><i style="height:36%"></i><i style="height:58%"></i><i class="find" style="height:100%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:30%"></i></div></article>
+      <article><h2>Sugerir en la sesión</h2><p>Mientras la persona sigue adentro, hace falta lo parecido y lo que se vio junto.</p><div class="viz"><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div><div class="box go" style="height:70%"></div></div></article>
+      <article class="pair-card"><div class="copy"><h2>No cortar un tal vez</h2><p>Marcar lo sospechoso. Bloquear solo cuando hay confirmación. Una sospecha no es una venta perdida.</p></div><div class="viz mid"><div class="pill" style="background:#fbf4e6;color:#8a5a08">tal vez</div><div class="pill" style="background:#f8eceb;color:#9d342c">bloquear</div></div></article>
+      <article class="pair-card"><div class="copy"><h2>Ver la red</h2><p>Qué se compra junto, y qué producto influye. Influir no es tener más enlaces.</p></div><div class="viz mid"><div class="pill" style="background:#e7eef2;color:#1d3d48">grado</div><div class="pill" style="background:#efe6f6;color:#4a2d6b">influencia</div></div></article>
     </div>
     <div class="prob-foot">
       <div class="card"><h2>Así se ve un evento</h2><p>1 nov 2019, usuario 513351129: a las 00:00:17 mira un Xiaomi y a las 00:01:04 lo compra. Misma sesión. El archivo no trae número de orden: dos compras de la misma sesión son la orden.</p></div>
@@ -497,7 +503,7 @@
       <article><b>59.989 / 39.994</b><span>Rama B y rama C. El primero del stream es E00059989.</span></article>
       <article><b>15</b><span>Comparaciones de la búsqueda binaria, peor caso, en un catálogo de 20.621. El id 12719243 quedó en la posición 10.310.</span></article>
       <article><b>2.950</b><span>Productos que el B+Tree devolvió entre 160,86 y 304,25. El KD-Tree coincidió con la fuerza bruta.</span></article>
-      <article><b>7</b><span>Compras bloqueadas. 714 siguieron. Bloom y Count-Min avisan; el conjunto exacto es el que corta.</span></article>
+      <article><b>7 y 714</b><span>Compras del stream bloqueadas, y compras que siguieron. Se bloquea con etiqueta de fraude, o con dispositivo o pago en el conjunto exacto. Nadie quedó en revisar.</span></article>
       <article><b>1004237 ≠ 1004856</b><span>Primero por PageRank y primero por grado. Louvain: 733 comunidades, modularidad 0,91.</span></article>
     </div>
     <p class="src">Cada familia se mide contra un rival: conjunto exacto, Jaccard y SimHash, KNN e IVF, grado, Label Propagation. Las figuras de la carpeta de pruebas son sintéticas y no se citan.</p>
@@ -519,9 +525,12 @@
         <p>El min-heap ordena por prioridad. Si empatan, gana quien llegó antes a la cola. Una vista no pasa delante de un pago.</p>
       </article>
       <article>
-        <div class="big">7 y 714</div>
-        <h2>Se bloquea con confirmación</h2>
-        <p>Siete compras se cortaron porque el conjunto exacto lo confirmó. 714 siguieron. Una sospecha del Bloom no basta para cortar.</p>
+        <div class="pair">
+          <div><b>7</b><span>compras del stream bloqueadas</span></div>
+          <div><b>714</b><span>compras del stream que siguieron</span></div>
+        </div>
+        <h2>Cortar exige confirmación</h2>
+        <p>Corrida quick, octubre 2019. Bloom y Count-Min pueden avisar. Se bloquea solo con etiqueta de fraude, o si el dispositivo o el pago están en el conjunto exacto. En esta corrida nadie quedó en revisar.</p>
       </article>
       <article>
         <div class="big">3 salidas</div>
