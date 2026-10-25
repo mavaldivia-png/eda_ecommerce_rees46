@@ -268,6 +268,7 @@
     <div class="wrap top-inner">
       <div class="brand">Motor REES46<span>Opción B · notebook v2 · octubre 2019</span></div>
       <nav>
+        <a href="#fases">Fases</a>
         <a href="#pipeline">Pipeline</a>
         <a href="#etapas">Etapas</a>
         <a href="#ficha">Ficha</a>
@@ -298,6 +299,42 @@
         <div class="stat"><b>3</b><span>etapas fijas: 6, 7 y 8</span></div>
         <div class="stat"><b>3</b><span>ramas de un evento</span></div>
         <div class="stat"><b>60 / 40</b><span>histórico y stream</span></div>
+      </div>
+    </section>
+
+    <section id="fases">
+      <h2>Qué hace cada fase</h2>
+      <p class="lede">
+        Cada fase hace una sola cosa. La A prepara el archivo y lo parte. La B escribe las estructuras con el 60&nbsp;%.
+        La C atiende el 40&nbsp;% leyendo lo que la B dejó.
+      </p>
+      <div class="grid-3" style="margin-top:14px">
+        <article class="panel">
+          <span class="kicker">Fase A</span>
+          <h3>Prepara el archivo entero y lo parte.</h3>
+          <p class="lede">
+            Lee el CSV, quita vacíos y duplicados, ordena por hora, pone a cada fila una prioridad del 1 al 6
+            y corta en el tiempo: 60&nbsp;% histórico y 40&nbsp;% stream. Todavía no hay modelos ni cola.
+          </p>
+        </article>
+        <article class="panel">
+          <span class="kicker">Fase B</span>
+          <h3>El 60&nbsp;% llena las estructuras.</h3>
+          <p class="lede">
+            Esas filas no se atienden. Quedan escritas para que el stream las consulte: catálogo (hash y LRU),
+            índice de precio (B+Tree), vecinos (HNSW), filtro de fraude (Bloom, Count-Min y conjunto exacto),
+            grafo de co-compra y trie de búsqueda.
+          </p>
+        </article>
+        <article class="panel">
+          <span class="kicker">Fase C</span>
+          <h3>El 40&nbsp;% se atiende en vivo.</h3>
+          <p class="lede">
+            Entra a la cola, el heap saca primero lo urgente, se busca el producto y el tipo de evento abre una sola rama:
+            vista o carrito recomienda (1 vecino del HNSW y 4 del grafo de sesión); compra decide permitir, revisar o bloquear
+            y, si sigue, suma aristas de co-compra. Las tres salidas llegan al servicio.
+          </p>
+        </article>
       </div>
     </section>
 
