@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="no-referrer">
+  <title>Simulador Fases A, B y C — pipeline REES46</title>
+  <style>
+    :root {
+      --bg: #f4f1ea; --paper: #fffcf8; --ink: #1b2430; --muted: #5d6876; --line: #e2dacd;
+      --accent: #1e4d6b; --soft: #e7f0f6; --warn-bg: #fbf3e4; --warn-line: #e4c98a;
+      --ok-bg: #eef6f1; --ok-line: #b7d4c4;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--bg); font: 16px/1.55 "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif; }
+    a { color: var(--accent); }
+    code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 0.88em; background: #efeae1; padding: 0.05em 0.35em; border-radius: 4px; }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    header.top { position: sticky; top: 0; z-index: 20; background: rgba(244,241,234,.94); border-bottom: 1px solid var(--line); }
+    .top-inner { display: flex; gap: 18px; align-items: center; justify-content: space-between; padding: 10px 0; }
+    .brand { font-weight: 650; letter-spacing: -.02em; }
+    .brand span { display: block; font-weight: 450; color: var(--muted); font-size: 12px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+    nav a { color: var(--ink); text-decoration: none; font-size: 13.5px; }
+    main { padding: 28px 0 72px; }
+    h1 { font-size: 32px; line-height: 1.15; letter-spacing: -.03em; margin: 0 0 10px; }
+    h2 { font-size: 22px; letter-spacing: -.02em; margin: 0 0 8px; }
+    h3 { font-size: 16px; margin: 0 0 6px; }
+    .lede, .muted { color: var(--muted); }
+    .lede { max-width: 78ch; }
+    .source { color: var(--muted); font-size: 13px; }
+    section { margin: 36px 0; }
+    .panel, .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+    .panel { padding: 16px; }
+    .stats, .two { display: grid; gap: 12px; }
+    .stats { grid-template-columns: repeat(3, 1fr); margin: 16px 0; }
+    .two { grid-template-columns: 1fr 1fr; }
+    .stat { padding: 14px 16px; }
+    .stat b { display: block; font-size: 26px; letter-spacing: -.03em; }
+    .stat span { color: var(--muted); font-size: 13px; }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+    button { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13.5px; cursor: pointer; }
+    button.on, button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button:disabled { opacity: .45; cursor: default; }
+    .k { color: var(--muted); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; font-weight: 650; margin: 14px 0 4px; }
+    .callout, .warn, .ok, .relato { border-radius: 8px; padding: 10px 12px; margin: 10px 0; }
+    .callout { border: 1px solid var(--line); border-left: 4px solid var(--accent); background: var(--soft); }
+    .warn { border: 1px solid var(--warn-line); background: var(--warn-bg); }
+    .ok { border: 1px solid var(--ok-line); background: var(--ok-bg); }
+    .relato { background: #efeae1; }
+    .callout strong, .warn strong, .ok strong { display: block; margin-bottom: 4px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { min-width: 118px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); padding: 8px; }
+    .chip b, .chip span, .chip small { display: block; }
+    .chip span, .chip small { color: var(--muted); font-size: 12px; }
+    .chip.on { border-color: var(--accent); background: var(--soft); }
+    .chip.dim { opacity: .5; }
+    .chip.bad { border-color: #8a3d52; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--paper); }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+    th { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    tr.on td { background: var(--soft); }
+    tr.ok td { background: var(--ok-bg); }
+    .bloques { display: flex; flex-wrap: wrap; gap: 10px; }
+    .k-bloques, .dos { display: grid; gap: 16px; }
+    .k-bloques { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+    .dos { grid-template-columns: 1fr 1fr; }
+    .bloque { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--paper); min-width: 140px; }
+    .bloque.on { border-color: var(--accent); background: var(--soft); }
+    .bits, .cms { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+    .bit, .cell { min-width: 26px; text-align: center; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); font-size: 11px; padding: 3px 2px; }
+    .bit { display: flex; flex-direction: column; min-width: 28px; padding: 4px 0; }
+    .bit small, .bit b { font-weight: 450; }
+    .bit.on, .cell.on { border-color: var(--accent); background: var(--soft); }
+    .bit.ask { border-width: 2px; border-color: var(--accent); }
+    .cell.hit { background: #efeae1; }
+    .dibujo { overflow-x: auto; padding-bottom: 4px; }
+    svg.grafo, svg.arbol { width: 100%; height: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; display: block; }
+    svg.arbol { width: auto; max-width: none; }
+    .leyenda { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: 13px; margin: 8px 0; }
+    .parcial-box { background: #efeae1; border-radius: 6px; padding: 10px 12px; }
+    .flecha { color: var(--muted); font-size: 13px; font-weight: 650; align-self: center; }
+    input[type="text"], input[type="number"] { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font: inherit; background: #fff; color: var(--ink); width: 140px; }
+    label.campo { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+    .controles { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+    @media (max-width: 800px) {
+      .stats, .two, .dos { grid-template-columns: 1fr; }
+      h1 { font-size: 26px; }
+      .top-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div class="brand">Motor REES46<span>Simulador de las fases A, B y C</span></div>
+      <nav>
+        <a href="#simulador">Simulador</a>
+        <a href="#corte">Por qué 60/40</a>
+        <a href="#dashboard">Dashboard</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <h1>Estudiar el pipeline, paso a paso</h1>
+    <p class="lede">Misma miniatura del canvas: 13 filas crudas, 10 limpias, corte 6 y 4. Cada paso corre el algoritmo y se avanza con Anterior, Siguiente o las flechas del teclado. Las flechas no actúan mientras se escribe en un campo.</p>
+    <p class="source">Fuente: canvas Fases ABC Escalabilidad y <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>, semilla 42.</p>
+
+    <section id="simulador">
+      <div class="pills" id="fases"></div>
+      <p class="lede" id="lede-fase"></p>
+      <div class="pills" id="pasos"></div>
+      <div class="panel" id="leccion"></div>
+      <div id="extra"></div>
+      <div class="controles" id="controles"></div>
+      <div class="panel" id="escenario"></div>
+    </section>
+
+    <section id="corte">
+      <h2>Por qué el lote se parte en 60 % y 40 %</h2>
+      <div class="warn"><strong>El corte es de tiempo. El archivo de REES46 ya está cerrado.</strong> <code>cortes_temporales</code> deja el pasado en la Rama B y reproduce el 40 % como si acabara de llegar. Fraude y recomendación no usan eventos que en el archivo todavía no habían pasado. Ese recorrido no mide miles de compras concurrentes: el notebook lo procesa en un hilo.</div>
+      <table>
+        <thead><tr><th>Qué</th><th>Rama B · 60 %</th><th>Rama C · 40 %</th></tr></thead>
+        <tbody>
+          <tr><td>Catálogo, popularidad, precio nuevo, matriz y LRU</td><td>Los crea</td><td>Los sigue actualizando</td></tr>
+          <tr><td>Co-compra</td><td>La arma con las compras del pasado</td><td>Suma aristas si la compra no se bloqueó</td></tr>
+          <tr><td>Índice, grafo de sesión, Bloom, Count-Min, conjunto exacto y trie</td><td>Los construye y los cierra</td><td>Solo los lee</td></tr>
+          <tr><td>Cola y heap</td><td>Todavía no existen</td><td>Ordenan este lote y quedan vacíos</td></tr>
+        </tbody>
+      </table>
+      <div class="two" style="margin-top:12px">
+        <div class="panel"><h3>Para qué se usa el 40 %</h3><p>Del 60 % al 70 % se puntúa si la recomendación acierta, hasta 300 sesiones. Del 70 % al final se repite. La cola y el heap hacen que un pago salga antes que una visita.</p></div>
+        <div class="panel"><h3>En una web ya desplegada</h3><p>El 60/40 no se recalcula en cada clic. La carga inicial equivale a la Rama B. Cada visita o compra es un solo evento por el camino de la Rama C.</p></div>
+      </div>
+    </section>
+
+    <section id="dashboard">
+      <h2>El dashboard llega después de la Rama C</h2>
+      <div class="warn"><strong>El paso 19 es solo Panel y alertas.</strong> Buscar, precios, recomendar y el grafo abren un objeto directo. Simular evento es la única pestaña que vuelve a pasar por el orquestador.</div>
+      <table>
+        <thead><tr><th>Pestaña</th><th>Dónde entra</th><th>Qué se obtiene</th></tr></thead>
+        <tbody>
+          <tr><td>Buscar por ID</td><td>Paso 14, directo</td><td>Ficha. Origen HASH o CACHE</td></tr>
+          <tr><td>Buscar por texto</td><td>Paso 11, trie</td><td>Productos del prefijo</td></tr>
+          <tr><td>Precios</td><td>Paso 7, B+Tree</td><td>Productos dentro del rango</td></tr>
+          <tr><td>Recomendar</td><td>Paso 17, directo</td><td>5 productos del híbrido</td></tr>
+          <tr><td>Simular evento</td><td>Paso 15, orquestador</td><td>Vista o carrito al 17. Compra al 16 y, si no se bloquea, al 18</td></tr>
+          <tr><td>Panel y alertas</td><td>Paso 19</td><td>Ventas, consultas, alertas y bloqueos</td></tr>
+          <tr><td>Grafo</td><td>Pasos 10 y 18</td><td>Co-compra, PageRank y comunidades</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <footer>Miniatura de estudio. El programa que se ejecuta sigue siendo <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>.</footer>
+  </main>
+  <script>
+"use strict";
+const RAW = [
+  { idx: 0, time: "11:20", minutos: 680, tipo: "view", producto: 5101, usuario: 17, sesion: "sA", precio: 150, categoria: "laptop", marca: "lenovo" },
+  { idx: 1, time: "09:40", minutos: 580, tipo: "purchase", producto: 1001, usuario: 12, sesion: "sB", precio: 120, categoria: "phone", marca: "apple" },
+  { idx: 2, time: "10:55", minutos: 655, tipo: "cart", producto: 4802, usuario: 21, sesion: "sC", precio: 70, categoria: "audio", marca: "sony" },
+  { idx: 3, time: "08:05", minutos: 485, tipo: "view", producto: 1802, usuario: 9, sesion: "sD", precio: 89, categoria: null, marca: "nike" },
+  { idx: 4, time: "12:10", minutos: 730, tipo: "purchase", producto: 1001, usuario: 14, sesion: "sE", precio: 120, categoria: "phone", marca: "apple" },
+  { idx: 5, time: "08:50", minutos: 530, tipo: "cart", producto: 3900, usuario: 33, sesion: "sF", precio: 45, categoria: "shoes", marca: null },
+  { idx: 6, time: "09:40", minutos: 580, tipo: "purchase", producto: 1001, usuario: 13, sesion: "sG", precio: 120, categoria: "phone", marca: "apple" },
+  { idx: 7, time: "08:20", minutos: 500, tipo: "purchase", producto: 10055, usuario: 11, sesion: "sH", precio: 240, categoria: "phone", marca: "samsung" },
+  { idx: 8, time: "07:15", minutos: 435, tipo: "view", producto: 9999, usuario: 5, sesion: null, precio: 10, categoria: "case", marca: "samsung" },
+  { idx: 9, time: "08:50", minutos: 530, tipo: "cart", producto: 3900, usuario: 33, sesion: "sF", precio: 45, categoria: "shoes", marca: null },
+  { idx: 10, time: "06:30", minutos: 390, tipo: "purchase", producto: 2222, usuario: 40, sesion: "sI", precio: null, categoria: "case", marca: "samsung" },
+  { idx: 11, time: "08:35", minutos: 515, tipo: "purchase", producto: 1210, usuario: 11, sesion: "sH", precio: 30, categoria: "case", marca: "samsung" },
+  { idx: 12, time: "08:12", minutos: 492, tipo: "view", producto: 1803, usuario: 9, sesion: "sD", precio: 55, categoria: "shoes", marca: "adidas" }
+];
+const DERIVADOS = {
+  3: { prioridad: 6, etiqueta: "Vista", dev: "dev-9-0", pay: "pay-9-1", fraudeConfirmado: false, hora: "08:00", disponible: true, restoDisponible: 15 },
+  12: { prioridad: 6, etiqueta: "Vista", dev: "dev-9-0", pay: "pay-9-2", fraudeConfirmado: false, hora: "08:00", disponible: true, restoDisponible: 12 },
+  7: { prioridad: 1, etiqueta: "Fraude", dev: "dev-11-0", pay: "pay-11-1", fraudeConfirmado: true, hora: "08:00", disponible: true, restoDisponible: 7 },
+  11: { prioridad: 4, etiqueta: "Programada", dev: "dev-11-0", pay: "pay-11-2", fraudeConfirmado: false, hora: "08:00", disponible: true, restoDisponible: 1 },
+  5: { prioridad: 5, etiqueta: "Carrito", dev: "dev-33-0", pay: "pay-33-1", fraudeConfirmado: false, hora: "08:00", disponible: true, restoDisponible: 9 },
+  1: { prioridad: 2, etiqueta: "Express", dev: "dev-12-0", pay: "pay-12-1", fraudeConfirmado: false, hora: "09:00", disponible: true, restoDisponible: 9 },
+  6: { prioridad: 3, etiqueta: "Estándar", dev: "dev-13-0", pay: "pay-13-1", fraudeConfirmado: false, hora: "09:00", disponible: true, restoDisponible: 13 },
+  2: { prioridad: 5, etiqueta: "Carrito", dev: "dev-21-0", pay: "pay-21-1", fraudeConfirmado: false, hora: "10:00", disponible: true, restoDisponible: 9 },
+  0: { prioridad: 6, etiqueta: "Vista", dev: "dev-17-0", pay: "pay-17-1", fraudeConfirmado: false, hora: "11:00", disponible: true, restoDisponible: 8 },
+  4: { prioridad: 4, etiqueta: "Programada", dev: "dev-14-0", pay: "pay-14-1", fraudeConfirmado: false, hora: "12:00", disponible: true, restoDisponible: 12 }
+};
+const CMS_POS = { "11|08:00": [11, 4, 4, 0, 15], "12|09:00": [15, 11, 14, 11, 9], "13|09:00": [1, 4, 0, 3, 13], "14|12:00": [7, 2, 5, 0, 13] };
+const BLOOM_POS = { "dev-11-0": [8, 14, 12], "pay-11-1": [12, 3, 0], "pay-11-2": [7, 0, 5], "dev-12-0": [7, 6, 6], "pay-12-1": [12, 2, 13], "dev-13-0": [1, 10, 4], "pay-13-1": [8, 0, 8], "dev-14-0": [0, 7, 6], "pay-14-1": [0, 3, 1] };
+const POS_REGLA = { "1802": [170, 72], "1803": [72, 196], "3900": [268, 196], "4802": [360, 286], "10055": [520, 72], "1210": [430, 196], "1001": [630, 196] };
+const POS_COCOMPRA = { 10055: [260, 48], 1210: [90, 145], 1001: [430, 145], 4802: [260, 240], 3900: [80, 325], 2222: [470, 280], 1802: [475, 45], 1803: [475, 355] };
+const CAT_SLOT = { unknown: 4, shoes: 3, phone: 6, case: 8, laptop: 2, audio: 5 };
+const BRAND_SLOT = { nike: 12, adidas: 11, samsung: 13, apple: 12, lenovo: 10, sony: 10, unknown: 10 };
+const TREE_INSERTS = [[89, "P-1802"], [55, "P-1803"], [240, "P-10055"], [30, "P-1210"], [45, "P-3900"], [120, "P-1001"], [12, "P-7001"], [18, "P-7002"], [29, "P-7003"], [60, "P-7004"], [75, "P-7005"], [95, "P-7006"], [150, "P-7007"], [89, "P-7008"], [120, "P-7009"]];
+const AMPLIADA = [
+  { fase: "B", sesion: "s1", hora: "08:20", producto: 10055, decision: "histórico" },
+  { fase: "B", sesion: "s1", hora: "08:35", producto: 1210, decision: "histórico" },
+  { fase: "B", sesion: "s1", hora: "08:50", producto: 1001, decision: "histórico" },
+  { fase: "B", sesion: "s2", hora: "09:10", producto: 10055, decision: "histórico" },
+  { fase: "B", sesion: "s2", hora: "09:25", producto: 1210, decision: "histórico" },
+  { fase: "B", sesion: "s2", hora: "09:40", producto: 4802, decision: "histórico" },
+  { fase: "B", sesion: "s3", hora: "10:00", producto: 2222, decision: "histórico" },
+  { fase: "C", sesion: "s2", hora: "10:15", producto: 3900, decision: "permitir" },
+  { fase: "C", sesion: "s1", hora: "10:30", producto: 4802, decision: "revisar" },
+  { fase: "C", sesion: "s4", hora: "10:45", producto: 1802, decision: "permitir" },
+  { fase: "C", sesion: "s4", hora: "11:00", producto: 1803, decision: "permitir" }
+];
+const REGLA_PASOS = [
+  { sesion: "s1", productos: ["1802", "1803"], nota: "s1 junta 1802 y 1803. Nace una arista con peso 1." },
+  { sesion: "s2", productos: ["1802", "1803", "3900"], nota: "s2 repite 1802 y 1803: esa arista pasa a peso 2. 3900 se une con los dos, en peso 1. Tres productos dejan tres pares." },
+  { sesion: "s3", productos: ["10055", "1210", "1001"], nota: "s3 trae otro grupo. Tres pares nuevos, todos en peso 1." },
+  { sesion: "s4", productos: ["10055", "1210"], nota: "s4 repite 10055 con 1210. Esa arista pasa a peso 2." },
+  { sesion: "s5", productos: ["1802", "10055", "4802"], nota: "s5 une los dos grupos y agrega 4802." }
+];
+
+function comparar(a, b) { return a.minutos - b.minutos || a.idx - b.idx; }
+function limpiar(raw) {
+  const frames = [];
+  const seen = new Set();
+  const estado = raw.map((row) => ({ row, resultado: "pendiente" }));
+  const copia = () => estado.map((e) => ({ row: e.row, resultado: e.resultado }));
+  frames.push({ nota: raw.length + " filas en el orden del archivo. dropna mira event_time, event_type, product_id, price, user_id y user_session.", estado: copia() });
+  raw.forEach((row, i) => {
+    let resultado, nota;
+    if (row.sesion == null) { resultado = "vacio"; nota = "Fila " + row.idx + " (" + row.time + "): falta user_session. dropna la elimina."; }
+    else if (row.precio == null) { resultado = "vacio"; nota = "Fila " + row.idx + " (" + row.time + "): falta price. dropna la elimina."; }
+    else {
+      const key = [row.time, row.tipo, row.producto, row.usuario, row.sesion].join("|");
+      if (seen.has(key)) { resultado = "duplicado"; nota = "Fila " + row.idx + ": la clave ya está en la tabla hash. drop_duplicates la descarta."; }
+      else {
+        seen.add(key); resultado = "queda";
+        const extra = [];
+        if (row.categoria == null) extra.push("category_code vacío pasa a unknown");
+        if (row.marca == null) extra.push("brand vacío pasa a unknown");
+        nota = "Fila " + row.idx + " (" + row.time + "): se queda." + (extra.length ? " " + extra.join(". ") + "." : " No le falta categoría ni marca.");
+      }
+    }
+    estado[i] = { row, resultado };
+    frames.push({ nota, estado: copia() });
+  });
+  const clean = frames[frames.length - 1].estado.filter((e) => e.resultado === "queda").map((e) => ({
+    idx: e.row.idx, time: e.row.time, minutos: e.row.minutos, tipo: e.row.tipo, producto: e.row.producto, usuario: e.row.usuario,
+    sesion: e.row.sesion, precio: e.row.precio, categoria: e.row.categoria || "unknown", marca: e.row.marca || "unknown",
+    categoriaRellenada: e.row.categoria == null, marcaRellenada: e.row.marca == null
+  }));
+  return { frames, clean };
+}
+function mergeSort(items) {
+  let tam = 1, ordenados = items.slice();
+  while (tam < ordenados.length) {
+    const sig = [];
+    for (let i = 0; i < ordenados.length; i += tam * 2) {
+      const izq = ordenados.slice(i, i + tam), der = ordenados.slice(i + tam, i + tam * 2);
+      let a = 0, b = 0;
+      while (a < izq.length && b < der.length) sig.push(comparar(izq[a], der[b]) <= 0 ? izq[a++] : der[b++]);
+      while (a < izq.length) sig.push(izq[a++]);
+      while (b < der.length) sig.push(der[b++]);
+    }
+    ordenados = sig; tam *= 2;
+  }
+  return ordenados;
+}
+function mergeFrames(inicial) {
+  const frames = [];
+  const vacio = () => ({ desde: -1, izquierda: [], derecha: [], tomado: null, empate: false, copia: false, parcial: [], escrito: [], par: 0, pares: 0 });
+  let ordenados = inicial.slice(), tamano = 1, pasada = 1;
+  frames.push(Object.assign({ kind: "inicio", pasada: 0, tamano: 1, arreglo: ordenados.slice(), nota: inicial.length + " filas, en el orden en que sobrevivieron a la limpieza. Cada una es una corrida de tamaño 1. La clave es (hora, índice de archivo): manda la hora y, si empatan, el índice menor." }, vacio()));
+  while (tamano < inicial.length) {
+    const siguiente = [];
+    const inicios = [];
+    for (let inicio = 0; inicio < ordenados.length; inicio += tamano * 2) inicios.push(inicio);
+    inicios.forEach((inicio, parIdx) => {
+      const izquierda = ordenados.slice(inicio, inicio + tamano);
+      const derecha = ordenados.slice(inicio + tamano, inicio + tamano * 2);
+      let i = 0, j = 0;
+      const parcial = [];
+      const dejar = (ev, copia, empate, nota) => {
+        parcial.push(ev);
+        frames.push({ kind: "paso", pasada, tamano, arreglo: ordenados.slice(), desde: inicio, izquierda: izquierda.slice(), derecha: derecha.slice(), tomado: ev, empate, copia, parcial: parcial.slice(), escrito: siguiente.concat(parcial), par: parIdx + 1, pares: inicios.length, nota });
+      };
+      while (i < izquierda.length && j < derecha.length) {
+        const L = izquierda[i], R = derecha[j], empate = L.minutos === R.minutos, tomaL = comparar(L, R) <= 0, ev = tomaL ? L : R, otro = tomaL ? R : L;
+        if (tomaL) i++; else j++;
+        dejar(ev, false, empate, empate ? "Las dos cabezas dicen " + L.time + ". La hora empata, así que decide el índice de archivo: " + L.idx + " contra " + R.idx + ". Gana la fila " + ev.idx + "." : "Cabeza izquierda " + L.time + " (fila " + L.idx + ") contra cabeza derecha " + R.time + " (fila " + R.idx + "). Gana " + ev.time + ", anterior a " + otro.time + ".");
+      }
+      while (i < izquierda.length) { const ev = izquierda[i++]; dejar(ev, true, false, "La corrida derecha ya no tiene piezas. " + ev.time + " (fila " + ev.idx + ") se copia al resultado, sin comparar."); }
+      while (j < derecha.length) { const ev = derecha[j++]; dejar(ev, true, false, "La corrida izquierda ya no tiene piezas. " + ev.time + " (fila " + ev.idx + ") se copia al resultado, sin comparar."); }
+      siguiente.push.apply(siguiente, parcial);
+    });
+    ordenados = siguiente;
+    const ultima = tamano * 2 >= inicial.length;
+    const secuencia = ordenados.map((ev) => ev.time).join(" → ");
+    frames.push(Object.assign({ kind: ultima ? "fin" : "cierre", pasada, tamano, arreglo: ordenados.slice(), escrito: ordenados.slice(), nota: ultima ? "El lote queda en una sola corrida: " + secuencia + "." : "Termina la pasada " + pasada + ". Cada corrida mide ahora hasta " + (tamano * 2) + " filas: " + secuencia + "." }, vacio()));
+    tamano *= 2; pasada++;
+  }
+  return frames;
+}
+function kFrames(eventos) {
+  const bloque = 4, bloques = [];
+  for (let i = 0; i < eventos.length; i += bloque) bloques.push(mergeSort(eventos.slice(i, i + bloque)));
+  const cursor = bloques.map(() => 0), nombres = bloques.map((_, i) => String.fromCharCode(65 + i));
+  const frames = [{ kind: "listo", bloques: bloques.map((b) => b.slice()), cursor: cursor.slice(), salida: [], salio: null, bloque: null, nota: "Parte " + eventos.length + " filas en bloques de " + bloque + ". En el notebook el bloque mide 100.000. Cada bloque ya está ordenado." }];
+  const salida = [];
+  const cabezas = () => cursor.map((pos, b) => pos < bloques[b].length ? { ev: bloques[b][pos], b } : null).filter(Boolean).sort((x, y) => comparar(x.ev, y.ev) || x.b - y.b);
+  while (cabezas().length) {
+    const mejor = cabezas()[0];
+    cursor[mejor.b]++; salida.push(mejor.ev);
+    const sigue = cursor[mejor.b] < bloques[mejor.b].length ? bloques[mejor.b][cursor[mejor.b]] : null;
+    frames.push({ kind: "sale", bloques: bloques.map((b) => b.slice()), cursor: cursor.slice(), salida: salida.slice(), salio: mejor.ev, bloque: mejor.b, nota: "Sale " + mejor.ev.time + " (fila " + mejor.ev.idx + "), bloque " + nombres[mejor.b] + ". " + (sigue ? "Ese bloque avanza a " + sigue.time + "." : "Ese bloque se agota.") });
+  }
+  frames.push({ kind: "fin", bloques: bloques.map((b) => b.slice()), cursor: cursor.slice(), salida: salida.slice(), salio: null, bloque: null, nota: "La salida coincide con un solo merge sort: " + salida.map((e) => e.time).join(" → ") + "." });
+  return frames;
+}
+class MinHeap {
+  constructor(cmp) { this.cmp = cmp; this.arr = []; }
+  push(item) { this.arr.push(item); let i = this.arr.length - 1; while (i > 0) { const p = Math.floor((i - 1) / 2); if (this.cmp(this.arr[i], this.arr[p]) < 0) { const t = this.arr[i]; this.arr[i] = this.arr[p]; this.arr[p] = t; i = p; } else break; } }
+  pop() { if (!this.arr.length) return; const top = this.arr[0], last = this.arr.pop(); if (this.arr.length) { this.arr[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = 2 * i + 2; let s = i; if (l < this.arr.length && this.cmp(this.arr[l], this.arr[s]) < 0) s = l; if (r < this.arr.length && this.cmp(this.arr[r], this.arr[s]) < 0) s = r; if (s === i) break; const t = this.arr[i]; this.arr[i] = this.arr[s]; this.arr[s] = t; i = s; } } return top; }
+}
+class NodoBP { constructor(hoja) { this.hoja = hoja; this.claves = []; this.hijos = []; this.siguiente = null; } }
+class ArbolBP {
+  constructor(orden) { this.orden = orden; this.raiz = new NodoBP(true); }
+  insertar(clave, valor) { const p = this.insertarNodo(this.raiz, clave, valor); if (p) { const r = new NodoBP(false); r.claves = [p[0]]; r.hijos = [this.raiz, p[1]]; this.raiz = r; } }
+  insertarNodo(nodo, clave, valor) {
+    if (nodo.hoja) { let i = 0; while (i < nodo.claves.length && nodo.claves[i] < clave) i++; if (i < nodo.claves.length && nodo.claves[i] === clave) { nodo.hijos[i].push(valor); return null; } nodo.claves.splice(i, 0, clave); nodo.hijos.splice(i, 0, [valor]); return nodo.claves.length <= this.orden ? null : this.dividirHoja(nodo); }
+    let i = 0; while (i < nodo.claves.length && nodo.claves[i] <= clave) i++; const p = this.insertarNodo(nodo.hijos[i], clave, valor); if (!p) return null; nodo.claves.splice(i, 0, p[0]); nodo.hijos.splice(i + 1, 0, p[1]); return nodo.claves.length <= this.orden ? null : this.dividirInterno(nodo);
+  }
+  dividirHoja(nodo) { const m = Math.floor(nodo.claves.length / 2), n = new NodoBP(true); n.claves = nodo.claves.slice(m); n.hijos = nodo.hijos.slice(m); nodo.claves = nodo.claves.slice(0, m); nodo.hijos = nodo.hijos.slice(0, m); n.siguiente = nodo.siguiente; nodo.siguiente = n; return [n.claves[0], n]; }
+  dividirInterno(nodo) { const m = Math.floor(nodo.claves.length / 2), sep = nodo.claves[m], n = new NodoBP(false); n.claves = nodo.claves.slice(m + 1); n.hijos = nodo.hijos.slice(m + 1); nodo.claves = nodo.claves.slice(0, m); nodo.hijos = nodo.hijos.slice(0, m + 1); return [sep, n]; }
+  hojas() { let n = this.raiz; while (!n.hoja) n = n.hijos[0]; const out = []; while (n) { out.push({ claves: n.claves.slice(), valores: n.hijos.map((v) => v.slice()) }); n = n.siguiente; } return out; }
+  instantanea() {
+    const walk = (nodo) => nodo.hoja
+      ? { hoja: true, claves: nodo.claves.slice(), valores: nodo.hijos.map((v) => v.slice()) }
+      : { hoja: false, claves: nodo.claves.slice(), hijos: nodo.hijos.map(walk) };
+    return walk(this.raiz);
+  }
+}
+function almacenFrames(eventos, cupo) {
+  const frames = [{ nota: "Catálogo, matriz y LRU vacíos.", catalogo: [], pares: [], lru: [], actual: null, origen: null }];
+  const cat = new Map(), inter = new Map(); let lru = [];
+  eventos.forEach((ev) => {
+    let item = cat.get(ev.producto), nueva = !item;
+    if (!item) { item = { producto: ev.producto, categoria: ev.categoria, marca: ev.marca, precio: ev.precio, disponible: ev.disponible, popularidad: 0 }; cat.set(ev.producto, item); }
+    item.popularidad++;
+    if (!inter.has(ev.usuario)) inter.set(ev.usuario, new Map());
+    const antes = inter.get(ev.usuario).get(ev.producto) || 0;
+    inter.get(ev.usuario).set(ev.producto, antes + 1);
+    const pos = lru.indexOf(ev.producto); let origen, evicted = null;
+    if (pos >= 0) { origen = "CACHE"; lru.splice(pos, 1); lru.push(ev.producto); }
+    else { origen = "HASH"; lru.push(ev.producto); if (lru.length > cupo) evicted = lru.shift(); }
+    const pares = []; inter.forEach((prods, usuario) => prods.forEach((veces, producto) => pares.push({ usuario, producto, veces })));
+    frames.push({ actual: ev, origen, catalogo: Array.from(cat.values()).map((c) => Object.assign({}, c)), pares, lru: lru.slice(), evicted, nueva, antes, veces: antes + 1, nota: "[" + ev.fase + "] " + ev.etiqueta + " " + ev.time + ", producto " + ev.producto + ". Catálogo: " + (nueva ? "nace la ficha, popularidad 1." : "ya estaba, popularidad " + item.popularidad + ".") + " Matriz usuario " + ev.usuario + ": " + (antes + 1) + ". LRU: " + origen + (evicted != null ? ", desaloja " + evicted + "." : ".") });
+  });
+  return frames;
+}
+function treeFrames(inserts) {
+  const arbol = new ArbolBP(3), vistos = new Set(), frames = []; let hojasAntes = 1;
+  inserts.forEach(([precio, producto]) => {
+    const dup = vistos.has(precio); vistos.add(precio); arbol.insertar(precio, producto);
+    const hojas = arbol.hojas(), division = hojas.length > hojasAntes; hojasAntes = hojas.length;
+    frames.push({ precio, producto, dup, division, hojas, arbol: arbol.instantanea(), nota: dup ? "Precio repetido: " + precio + " ya era clave del árbol. " + producto + " se agrega a la lista de esa clave. El número de claves no cambia, así que no hay división." : division ? "Precio nuevo " + precio + " (" + producto + "). La hoja superó el orden 3 y se parte: el separador sube y nace una rama nueva." : "Precio nuevo " + precio + " (" + producto + "). Baja por las ramas hasta su hoja y entra ordenado, sin partir el nodo." });
+  });
+  return frames;
+}
+function aristasDe(peso) { return Array.from(peso.entries()).map(([k, w]) => k.split("-").concat(Number(w))); }
+function grafoSesion(train) {
+  const por = new Map();
+  train.forEach((ev) => { if (!por.has(ev.sesion)) por.set(ev.sesion, []); const a = por.get(ev.sesion); if (!a.includes(ev.producto)) a.push(ev.producto); });
+  const frames = [{ sesion: null, productos: [], cambios: [], aristas: [], nota: "construir_grafo_sesion parte de un diccionario vacío. Agrupa el histórico por user_session y, en cada visita, se queda con los productos distintos." }];
+  const peso = new Map();
+  por.forEach((productos, sesion) => {
+    const cambios = [];
+    const eventos = train.filter((ev) => ev.sesion === sesion);
+    for (let i = 0; i < productos.length; i++) for (let j = i + 1; j < productos.length; j++) {
+      const par = [String(productos[i]), String(productos[j])].sort((a, b) => Number(a) - Number(b)), key = par.join("-");
+      const antes = peso.get(key) || 0;
+      peso.set(key, antes + 1);
+      cambios.push({ a: par[0], b: par[1], antes, peso: antes + 1 });
+    }
+    const detalle = eventos.map((ev) => ev.time + " " + ev.tipo + " " + ev.producto).join(", ");
+    const nota = cambios.length
+      ? "Sesión " + sesion + ", usuario " + eventos[0].usuario + ": " + detalle + ". Productos distintos: " + productos.join(", ") + ". " + (cambios.length === 1 ? "Un par, una arista, peso 1." : cambios.length + " pares, cada uno con su arista.") + " Vista, carrito y compra cuentan igual."
+      : "Sesión " + sesion + ", usuario " + eventos[0].usuario + ": " + detalle + ". Hay un solo producto. No hay par y no entra al grafo.";
+    frames.push({ sesion, productos: productos.map(String), eventos, cambios, aristas: aristasDe(peso), nota });
+  });
+  return frames;
+}
+function rankingVecinos(aristas, visto) {
+  const puntaje = new Map();
+  aristas.forEach((a) => {
+    const x = String(a[0]), y = String(a[1]), otro = x === visto ? y : y === visto ? x : null;
+    if (otro) puntaje.set(otro, (puntaje.get(otro) || 0) + Number(a[2]));
+  });
+  return Array.from(puntaje.entries()).map(([producto, peso]) => ({ producto, peso })).sort((x, y) => y.peso - x.peso || Number(x.producto) - Number(y.producto));
+}
+function reglaGrafo() {
+  const peso = new Map();
+  const frames = [{ sesion: null, productos: [], cambios: [], aristas: [], nota: "El diccionario de aristas empieza vacío. Cada paso es una user_session distinta. Este ejemplo no está en la miniatura." }];
+  REGLA_PASOS.forEach((paso) => {
+    const cambios = [];
+    for (let i = 0; i < paso.productos.length; i++) for (let j = i + 1; j < paso.productos.length; j++) {
+      const par = [paso.productos[i], paso.productos[j]].sort((a, b) => Number(a) - Number(b)), key = par.join("-");
+      const antes = peso.get(key) || 0;
+      peso.set(key, antes + 1);
+      cambios.push({ a: par[0], b: par[1], antes, peso: antes + 1 });
+    }
+    frames.push({ sesion: paso.sesion, productos: paso.productos.slice(), cambios, aristas: aristasDe(peso), nota: paso.nota });
+  });
+  const aristas = frames[frames.length - 1].aristas;
+  const ranking = rankingVecinos(aristas, "1802");
+  frames.push({ sesion: null, productos: ["1802"], cambios: [], aristas, consulta: { visto: "1802", ranking }, nota: "La Rama C no escribe este grafo. candidatos_grafo mira los vecinos de lo ya visto y ordena por peso, de mayor a menor. 1802–1803 pesa 2, así que 1803 sale primero. 3900, 4802 y 10055 pesan 1 y completan las 4 plazas del grafo." });
+  return frames;
+}
+function fraudeB(train) {
+  const compras = train.filter((e) => e.tipo === "purchase");
+  const cms = {}, exactos = new Set(), tabla = Array.from({ length: 5 }, () => Array.from({ length: 16 }, () => 0));
+  const snap = () => ({ cms: Object.assign({}, cms), exactos: Array.from(exactos), tabla: tabla.map((f) => f.slice()), bits: [], bloom: false });
+  const frames = [Object.assign(snap(), { foco: null, nota: "Solo entran compras del histórico. Hay " + compras.length + ": 08:20, 08:35 y 09:40. Vista y carrito no escriben." })];
+  const relatos = [
+    "08:20, 10055, fraude confirmado. Count-Min suma en 11|08:00, columnas 11, 4, 4, 0 y 15. El conjunto exacto recibe dev-11-0 y pay-11-1.",
+    "08:35, 1210, misma hora. 11|08:00 pasa a 2. pay-11-2 no entra: esta fila no trae fraude confirmado.",
+    "09:40, 1001, Express. Nueva clave 12|09:00. dev-12-0 y pay-12-1 quedan fuera del conjunto."
+  ];
+  compras.forEach((ev, i) => {
+    const clave = ev.usuario + "|" + ev.hora;
+    cms[clave] = (cms[clave] || 0) + 1;
+    (CMS_POS[clave] || []).forEach((col, fila) => { tabla[fila][col]++; });
+    if (ev.fraudeConfirmado) { exactos.add(ev.dev); exactos.add(ev.pay); }
+    frames.push(Object.assign(snap(), { foco: ev, columnas: CMS_POS[clave] || [], nota: relatos[i] }));
+  });
+  const bits = [];
+  Array.from(exactos).forEach((id) => (BLOOM_POS[id] || []).forEach((b) => { if (bits.indexOf(b) < 0) bits.push(b); }));
+  bits.sort((a, b) => a - b);
+  frames.push(Object.assign(snap(), { bloom: true, bits, nota: "Al cerrar, el Bloom enciende los bits del conjunto exacto. En el dibujo son 16 bits y 3 hashes. En el notebook: 9.816 bits y 7 hashes. dev-11-0 enciende 8, 14 y 12. pay-11-1 enciende 12, 3 y 0." }));
+  return frames;
+}
+function bloomContiene(id, bits) { const pos = BLOOM_POS[id]; return !!pos && pos.every((b) => bits.indexOf(b) >= 0); }
+function decidirFraude(ev, cms, exactos, bits) {
+  const motivos = [];
+  if (bloomContiene(ev.dev, bits)) motivos.push(exactos.indexOf(ev.dev) >= 0 ? "dispositivo confirmado" : "dispositivo en el Bloom");
+  if (bloomContiene(ev.pay, bits)) motivos.push(exactos.indexOf(ev.pay) >= 0 ? "pago confirmado" : "pago en el Bloom");
+  const intensidad = cms[ev.usuario + "|" + ev.hora] || 0;
+  if (intensidad >= 8) motivos.push("intensidad " + intensidad);
+  const confirmado = ev.fraudeConfirmado || exactos.indexOf(ev.dev) >= 0 || exactos.indexOf(ev.pay) >= 0;
+  const decision = confirmado ? "bloquear" : motivos.length ? "revisar" : "permitir";
+  return { decision, motivos, intensidad };
+}
+function cocompraDe(eventos) {
+  const por = new Map(), nodos = new Set(), aristas = new Map(), frames = [];
+  eventos.forEach((ev) => {
+    nodos.add(ev.producto);
+    const prev = por.get(ev.sesion) || [];
+    const distintos = Array.from(new Set(prev.filter((p) => p !== ev.producto)));
+    distintos.forEach((otro) => {
+      const par = [otro, ev.producto].sort((a, b) => a - b), key = par.join("-");
+      const viejo = aristas.get(key);
+      aristas.set(key, [par[0], par[1], (viejo ? viejo[2] : 0) + 1]);
+    });
+    por.set(ev.sesion, prev.concat(ev.producto));
+    frames.push({ ev, anteriores: distintos, nodos: Array.from(nodos), aristas: Array.from(aristas.values()), nota: (ev.fase ? ev.fase + " · " : "") + ev.sesion + " compra " + ev.producto + ". Consulta compras previas: " + (distintos.join(", ") || "ninguna") + ". " + (distintos.length ? "Escribe o refuerza " + distintos.length + " arista(s)." : "Nodo suelto.") });
+  });
+  return frames;
+}
+function fichasDe(train) {
+  const vistos = new Map();
+  train.forEach((ev) => { if (!vistos.has(ev.producto)) vistos.set(ev.producto, ev); });
+  const lista = Array.from(vistos.values());
+  const precioMax = Math.log1p(Math.max.apply(null, lista.map((e) => e.precio).concat(0)));
+  return lista.map((ev) => {
+    const vector = Array(14).fill(0);
+    vector[0] = Math.log1p(ev.precio) / (precioMax || 1);
+    vector[1] = 1;
+    const cat = CAT_SLOT[ev.categoria] != null ? CAT_SLOT[ev.categoria] : 2;
+    const marca = BRAND_SLOT[ev.marca] != null ? BRAND_SLOT[ev.marca] : 10;
+    vector[cat] = 1; vector[marca] = 1;
+    return { producto: ev.producto, categoria: ev.categoria, marca: ev.marca, precio: ev.precio, vector, cat, marcaCasilla: marca };
+  });
+}
+function l2(a, b) { return Math.sqrt(a.reduce((s, v, i) => s + (v - b[i]) * (v - b[i]), 0)); }
+function motivoCercania(base, otro) {
+  const marca = base.marcaCasilla === otro.marcaCasilla
+    ? (base.marca === otro.marca ? "misma marca " + base.marca + ", casilla " + base.marcaCasilla : base.marca + " y " + otro.marca + " caen en la misma casilla de marca " + base.marcaCasilla)
+    : "marca " + base.marca + " en la casilla " + base.marcaCasilla + ", " + otro.marca + " en la " + otro.marcaCasilla;
+  const categoria = base.cat === otro.cat ? "misma categoría " + base.categoria : "categoría " + base.categoria + " en la casilla " + base.cat + ", " + otro.categoria + " en la " + otro.cat;
+  return marca + ". " + categoria + ". Precio " + base.precio + " contra " + otro.precio + ".";
+}
+function paresAjenos(aristas, visto) {
+  return aristas.filter((a) => Number(a[0]) !== visto && Number(a[1]) !== visto).map((a) => ({ a: Number(a[0]), b: Number(a[1]), peso: Number(a[2]) }));
+}
+function consultar(visto, fichas, ady, populares, aristas) {
+  const base = fichas.find((f) => f.producto === visto) || null;
+  const distancias = base ? fichas.filter((f) => f.producto !== visto).map((f) => ({ ficha: f, l2: l2(base.vector, f.vector), motivo: motivoCercania(base, f) })).sort((a, b) => a.l2 - b.l2 || a.ficha.producto - b.ficha.producto) : [];
+  const vecinos = (ady.get(visto) || []).slice().sort((a, b) => b.peso - a.peso || a.producto - b.producto);
+  const salida = [], ya = new Set([visto]);
+  const tomar = (producto, fuente, detalle) => { if (ya.has(producto) || salida.length >= 5) return; ya.add(producto); salida.push({ producto, fuente, detalle }); };
+  if (distancias[0]) tomar(distancias[0].ficha.producto, "HNSW", "L2 " + distancias[0].l2.toFixed(2));
+  else if (populares.length) tomar(populares.find((p) => p !== visto), "HNSW", "sin vector: primer popular");
+  vecinos.forEach((v) => { if (salida.filter((p) => p.fuente === "grafo").length < 4) tomar(v.producto, "grafo", "peso " + v.peso); });
+  populares.forEach((p) => tomar(p, "popular", "relleno"));
+  return { visto, base, distancias, vecinos, ajenos: paresAjenos(aristas || [], visto), salida, populares };
+}
+function adyacencia(frames) {
+  const map = new Map();
+  const ult = frames[frames.length - 1];
+  ult.aristas.forEach((a) => {
+    const x = Number(a[0]), y = Number(a[1]), w = Number(a[2]);
+    if (!map.has(x)) map.set(x, []);
+    if (!map.has(y)) map.set(y, []);
+    map.get(x).push({ producto: y, peso: w });
+    map.get(y).push({ producto: x, peso: w });
+  });
+  return map;
+}
+function trieDe(train) {
+  const root = { hijos: {}, ids: [] }, terminales = new Map(), frames = [{ terminales: [], nota: "El trie espera el catálogo cerrado. Cada producto deja dos frases." }], vistos = new Set();
+  function insertar(texto, id) { let n = root; for (const ch of texto) { n.hijos[ch] = n.hijos[ch] || { hijos: {}, ids: [] }; n = n.hijos[ch]; } n.ids.push(id); }
+  train.forEach((ev) => {
+    if (vistos.has(ev.producto)) return;
+    vistos.add(ev.producto);
+    [ev.categoria + " " + ev.marca, ev.marca + " " + ev.categoria].forEach((frase) => { insertar(frase, ev.producto); terminales.set(frase, (terminales.get(frase) || []).concat(ev.producto)); });
+    frames.push({ terminales: Array.from(terminales.entries()), nota: "Producto " + ev.producto + " inserta \"" + ev.categoria + " " + ev.marca + "\" y \"" + ev.marca + " " + ev.categoria + "\"." });
+  });
+  return { root, frames };
+}
+function completar(root, texto, limite) {
+  let n = root;
+  for (const ch of texto.trim().toLowerCase()) { if (!n.hijos[ch]) return []; n = n.hijos[ch]; }
+  const out = [], q = [n];
+  while (q.length && out.length < limite) {
+    const cur = q.shift();
+    cur.ids.forEach((id) => { if (out.length < limite && out.indexOf(id) < 0) out.push(id); });
+    Object.keys(cur.hijos).sort().forEach((k) => q.push(cur.hijos[k]));
+  }
+  return out;
+}
+function rangoPrecios(hojas, min, max) {
+  const ids = [];
+  hojas.forEach((h) => h.claves.forEach((clave, i) => { if (clave >= min && clave <= max) h.valores[i].forEach((id) => ids.push(clave + " → " + id)); }));
+  return ids;
+}
+function circulo(ids, cx, cy, r) {
+  const pos = {};
+  ids.forEach((id, i) => {
+    const ang = -Math.PI / 2 + (2 * Math.PI * i) / Math.max(ids.length, 1);
+    pos[String(id)] = [cx + r * Math.cos(ang), cy + r * Math.sin(ang)];
+  });
+  return pos;
+}
+
+function buildModel() {
+  const lim = limpiar(RAW);
+  const merge = mergeFrames(lim.clean);
+  const sorted = merge[merge.length - 1].arreglo;
+  const enriched = sorted.map((ev, pos) => Object.assign({ pos, eventoId: "E" + String(pos).padStart(2, "0") }, ev, DERIVADOS[ev.idx]));
+  const corte = Math.max(1, Math.floor(enriched.length * 0.6));
+  const train = enriched.slice(0, corte).map((e) => Object.assign({ fase: "B" }, e));
+  const stream = enriched.slice(corte).map((e) => Object.assign({ fase: "C" }, e));
+  const heap = new MinHeap((a, b) => a.prioridad - b.prioridad || a.pos - b.pos);
+  const heapFrames = [], poppedSoFar = [];
+  stream.forEach((ev, orden) => { heap.push(ev); heapFrames.push({ op: "push", item: ev, arr: heap.arr.slice(), poppedSoFar: poppedSoFar.slice(), nota: "heappush: (prioridad " + ev.prioridad + ", orden " + orden + "). " + ev.etiqueta + " entra a la cola de prioridad." }); });
+  const pop = [];
+  while (heap.arr.length) { const ev = heap.pop(); pop.push(ev); poppedSoFar.push(ev); heapFrames.push({ op: "pop", item: ev, arr: heap.arr.slice(), poppedSoFar: poppedSoFar.slice(), nota: "heappop: sale " + ev.etiqueta + " (prioridad " + ev.prioridad + "). Es la clave menor del heap en este momento." }); }
+  const almacen = almacenFrames(train.concat(pop), 3);
+  const fb = fraudeB(train);
+  const fin = fb[fb.length - 1];
+  const notasC = {
+    6: "Estándar, usuario 13, producto 1001. pay-13-1 cae en bits que ya están en 1, así que el Bloom dice que el pago está. El conjunto exacto no lo tiene. Hay motivo y no hay confirmación: revisar. Esta consulta no escribe.",
+    4: "Programada, usuario 14, producto 1001. Falta un bit en el dispositivo y en el pago. Count-Min en 0. El conjunto no los tiene. permitir."
+  };
+  const fraudeC = pop.filter((e) => e.tipo === "purchase").map((ev) => Object.assign({ ev }, decidirFraude(ev, fin.cms, fin.exactos, fin.bits), { nota: notasC[ev.idx] || ev.etiqueta }));
+  const permitidas = fraudeC.filter((f) => f.decision !== "bloquear").map((f) => f.ev).sort((a, b) => a.minutos - b.minutos);
+  const comprasB = train.filter((e) => e.tipo === "purchase").sort((a, b) => a.minutos - b.minutos);
+  const cocompra = cocompraDe(comprasB.map((e) => Object.assign({ fase: "B" }, e)).concat(permitidas.map((e) => Object.assign({ fase: "C" }, e))));
+  const amp = cocompraDe(AMPLIADA.map((e) => Object.assign({ fase: e.fase, sesion: e.sesion, producto: e.producto, time: e.hora, etiqueta: e.decision, tipo: "purchase" }, e)));
+  const fichas = fichasDe(train);
+  const populares = [];
+  train.forEach((ev) => { if (populares.indexOf(ev.producto) < 0) populares.push(ev.producto); });
+  const sesionFrames = grafoSesion(train);
+  const ady = adyacencia(sesionFrames);
+  const aristasSesion = sesionFrames[sesionFrames.length - 1].aristas;
+  const trie = trieDe(train);
+  const sintesis = [{ actual: null, nota: "El lote ya está ordenado. Todavía no existen device_id, payment_id, prioridad ni etiqueta: REES46 no las trae." }].concat(enriched.map((ev) => ({ actual: ev, nota: "Producto " + ev.producto + ", usuario " + ev.usuario + ". huella escribe " + ev.dev + " y " + ev.pay + ". Prioridad " + ev.prioridad + ", " + ev.etiqueta + ". fraude_confirmado " + ev.fraudeConfirmado + "." + (ev.categoriaRellenada ? " La categoría se rellenó con unknown." : "") + (ev.marcaRellenada ? " La marca se rellenó con unknown." : "") })));
+  const cola = [0, 1, 2, 3, 4].map((n) => ({ n, items: stream.slice(0, n), nota: n === 0 ? "El deque empieza vacío." : n < 4 ? "Entra " + stream[n - 1].etiqueta + " " + stream[n - 1].time + " por detrás." : "Las 4 llegadas están en orden temporal. deque(range(corte, n)) hace esto." }));
+  const orq = pop.map((ev) => ({ ev, rama: ev.tipo === "purchase" ? "Fraude" : "Recomendación", nota: ev.tipo === "purchase" ? ev.etiqueta + " es purchase: abre fraude." : ev.etiqueta + " es " + ev.tipo + ": abre recomendación." }));
+  const servicio = pop.map((ev, i) => {
+    const origen = (almacen.find((f) => f.actual && f.actual.pos === ev.pos) || {}).origen || "HASH";
+    if (ev.tipo === "purchase") return [String(i + 1), ev.etiqueta + " " + ev.time + " · " + ev.producto, origen, "Fraude", fraudeC.find((f) => f.ev.pos === ev.pos).decision];
+    return [String(i + 1), ev.etiqueta + " " + ev.time + " · " + ev.producto, origen, "Recomendación", consultar(ev.producto, fichas, ady, populares, aristasSesion).salida.map((p) => p.producto).join(", ")];
+  });
+  const idsGrafo = [];
+  sesionFrames[sesionFrames.length - 1].aristas.forEach((a) => [a[0], a[1]].forEach((id) => { if (idsGrafo.indexOf(String(id)) < 0) idsGrafo.push(String(id)); }));
+  const posSesion = circulo(idsGrafo, 260, 145, idsGrafo.length <= 2 ? 78 : 96);
+  return { raw: RAW, limpieza: lim.frames, clean: lim.clean, merge, k: kFrames(lim.clean), sorted, enriched, train, stream, corte, sintesis, almacen, tree: treeFrames(TREE_INSERTS), sesion: sesionFrames, regla: reglaGrafo(), posSesion, fraudeB: fb, fraudeC, cocompra, amp, trie, cola, heap: heapFrames, pop, orq, servicio, fichas, ady, populares, aristasSesion, consultar: (id) => consultar(id, fichas, ady, populares, aristasSesion) };
+}
+
+const TEORIA = {
+  "1 Lectura": ["Mover el CSV a memoria sin exigir que quepa completo.", "Lectura por chunks y concatenación controlada.", "Conserva el orden original del archivo; aún no hay orden temporal.", "O(n) lectura; memoria proporcional al lote que se decide procesar."],
+  "2 Limpieza": ["Eliminar entradas inválidas o repetidas y normalizar texto opcional.", "dropna, fillna y una tabla hash de claves compuestas para drop_duplicates.", "Solo quedan filas con campos críticos completos; una misma clave aparece una vez.", "O(n) esperado para deduplicación con hash."],
+  "3 Orden": ["Convertir el orden del archivo en orden cronológico estable.", "Merge sort fusiona corridas de 1, 2, 4, 8… con la clave (event_time, índice). Si hay más de un bloque de 100.000, mezcla_k junta esos bloques ya ordenados con un heap de cabezas.", "La salida queda no decreciente en tiempo; los empates respetan el índice original. mezcla_k produce el mismo orden que un solo merge sort.", "O(n log n) tiempo. Cada merge_sort ordena a lo sumo 100.000 filas; el heap de mezcla_k guarda una cabeza por bloque."],
+  "4 Síntesis": ["Completar campos que REES46 no proporciona para poder demostrar fraude y prioridad.", "SHA-256 determinista sobre (semilla, usuario, producto) y reglas de negocio.", "Misma entrada y semilla producen siempre los mismos atributos sintéticos.", "O(n); coste constante por evento."],
+  "5 Corte": ["Dejar el pasado para construir y el tramo posterior para atender y medir, sin usar el futuro.", "Índice train = floor(0.60 × n) sobre la secuencia ya ordenada. Dentro del 40 %, otro corte al 70 % separa la ventana donde se puntúan las recomendaciones.", "B solo ve pasado. C consume eventos posteriores. Fraude y recomendación no cuentan lo que todavía no había ocurrido.", "O(1) para calcular límites; vistas O(1) sobre el DataFrame."],
+  "6 Almacén": ["Guardar la ficha, el par usuario-producto y las consultas recientes, en ese orden.", "1. dict catalogo por product_id. 2. dict de dicts interacciones. 3. OrderedDict como LRU.", "Una ficha por product_id. La matriz solo guarda pares que ocurrieron. El LRU conserva las últimas K claves usadas.", "O(1) esperado en los tres pasos. El diccionario del catálogo es la tabla hash: no recorre las fichas."],
+  "7 B+Tree": ["Consultar productos por intervalo de precio de forma ordenada.", "Hojas enlazadas, separación al superar el orden y promoción de una clave.", "Todas las hojas están a la misma profundidad; claves ordenadas; repetidos acumulan valores.", "Búsqueda O(log n + resultados del rango)."],
+  "8 Índice": ["Guardar qué productos compartieron una visita y, después, un índice para buscar parecidos por precio, popularidad, categoría y marca.", "Primero construir_grafo_sesion: agrupa por user_session y une cada par de productos distintos de esa visita. Después construir_indice_productos: arma el vector de 14 casillas y lo entrega a HNSW, o a KNN exacto si hnswlib no está. La tabla de vecinos es la consulta de ese índice, en la fase C.", "Una visita con un solo producto no deja nodo. El índice no devuelve el producto ya visto, porque su distancia sería 0.", "El grafo crece con los pares de cada sesión. Armar los vectores es O(productos). Consultar a todos es O(productos); hnswlib baja ese costo."],
+  "9 Fraude": ["Dejar, antes del stream, tres lecturas de las compras ya vistas: frecuencia, pertenencia probable y confirmación.", "Solo compras. El Count-Min tiene 5 filas, h0 a h4, y cada fila es un hash de la clave usuario|hora. Ese hash se divide entre el ancho y el resto elige la casilla que suma 1. El conjunto exacto guarda dispositivo y pago si fraude_confirmado. Si el vigía módulo 50 da 0, el dispositivo entra al Bloom y no al conjunto. El Bloom se llena al cerrar.", "Bloom puede decir que un miembro está cuando no está; no puede olvidar a uno que sí entró. Bloquear exige el conjunto exacto o la etiqueta. Una señal sola deja la compra en revisar.", "Bloom y Count-Min, O(1) por compra. La memoria del Count-Min es fija: 5 × 4.096."],
+  "10 Co-compra": ["Recordar qué productos se compraron juntos en la misma sesión, para sugerir el segundo cuando alguien compra el primero.", "Grafo: cada nodo es un producto. Una arista une la compra nueva con cada compra anterior de esa sesión y suma 1 al peso.", "No une sesiones distintas; solo compra con compra.", "Depende del número de productos previos de la sesión; memoria proporcional a nodos y aristas."],
+  "11 Trie": ["Autocompletar texto por prefijo sin recorrer todo el catálogo.", "Diccionarios anidados por carácter y recorrido BFS desde el nodo del prefijo.", "Toda frase insertada termina en una lista de product_id.", "Descenso proporcional al largo del prefijo, más los resultados visitados."],
+  "12 Cola": ["Conservar el orden de llegada del stream.", "deque FIFO: entra por un extremo, sale por el otro.", "El primer evento en llegar es el primero que se entrega al heap.", "O(1) amortizado por encolar y desencolar."],
+  "13 Heap": ["Atender primero lo más urgente sin ordenar todo repetidamente.", "Min-heap con clave (prioridad, orden, índice).", "La raíz siempre es la clave mínima; el segundo criterio estabiliza prioridades iguales.", "push y pop O(log n); consultar el mínimo O(1)."],
+  "14 Lookup": ["Actualizar el mismo Almacén de B y ubicar la ficha del evento que acaba de salir del heap.", "Almacen.actualizar, en orden: catálogo, matriz dispersa, y consultar sobre el LRU.", "Producto nuevo crea ficha e inserta el precio en el B+Tree. Producto existente solo aumenta popularidad. La matriz suma el par usuario-producto. CACHE si el LRU ya tenía la ficha; HASH si se lee del diccionario.", "Catálogo, matriz y LRU: O(1) esperado por evento. No es un recorrido de todas las fichas. El B+Tree solo se toca si el producto es nuevo, y esa inserción es logarítmica."],
+  "15 Orquestador": ["Enviar cada evento solo a su algoritmo de negocio correspondiente.", "Bifurcación por event_type.", "view y cart no ejecutan fraude; purchase no ejecuta recomendación en ese paso.", "O(1) por evento."],
+  "16 Fraude": ["Decidir permitir, revisar o bloquear una compra del stream.", "Consulta de Bloom, Count-Min y conjunto exacto creado en B.", "Solo una evidencia exacta permite bloquear; señales no confirmadas producen revisar.", "O(1) por compra; no modifica las estructuras históricas."],
+  "17 Recomendación": ["Armar 5 productos para una vista o un carrito.", "vistos es el product_id de este evento más lo ya visto en la sesión. 1 plaza: vecino HNSW por distancia L2. Hasta 4 plazas: vecinos del grafo de sesión, por peso. Si faltan, populares del histórico.", "No recomienda un producto ya visto. El grafo y el índice no se modifican.", "La plaza HNSW la resuelve el índice. El grafo recorre los vecinos del producto visto."],
+  "18 Co-compra": ["Incorporar al grafo las compras nuevas que no fueron bloqueadas.", "unir_compra sobre el mismo estado de co-compra de B.", "Mantiene orden temporal por sesión y no agrega compras bloqueadas.", "Proporcional a las compras previas de esa sesión."],
+  "19 Panel": ["Dejar la foto del stream: ventas, consultas, alertas y bloqueos.", "Junta, por cada evento que salió del heap, el lookup, la rama del orquestador y la decisión.", "Cada fila corresponde a un evento del 40 %. En el dashboard esa foto es solo la pestaña Panel y alertas.", "Proporcional a los eventos del stream para consolidar el panel."]
+};
+
+function modeloListo() {
+  const m = buildModel();
+  if (m.clean.length !== 10 || m.train.length !== 6 || m.stream.length !== 4) throw new Error("corte");
+  if (m.k[m.k.length - 1].salida.map((e) => e.idx).join() !== m.sorted.map((e) => e.idx).join()) throw new Error("mezcla");
+  if (m.tree.length !== 15) throw new Error("arbol");
+  if (m.fraudeC.map((f) => f.decision).join() !== "revisar,permitir") throw new Error("fraude");
+  if (m.consultar(1802).salida.length !== 5) throw new Error("hibrido");
+  return m;
+}
+
+if (typeof document === "undefined") {
+  const m = modeloListo();
+  console.log(JSON.stringify({ clean: m.clean.length, merge: m.merge.length, tree: m.tree.length, raizInterna: m.tree[m.tree.length - 1].arbol.hoja === false, hojas: m.tree[m.tree.length - 1].hojas.length, cocompra: m.cocompra.length, amp: m.amp.length, heap: m.heap.length, popped: m.heap[m.heap.length - 1].poppedSoFar.length, top: m.consultar(1802).salida, ajenos: m.consultar(1802).ajenos.length, ranking: m.regla[m.regla.length - 1].consulta.ranking.map((r) => r.producto + ":" + r.peso) }));
+} else {
+  const M = modeloListo();
+  const ui = { fase: "A", paso: "lectura", frame: 0, modo: { orden: "merge", indice: "grafo", cocompra: "mini", reco: "1802" } };
+  const fases = {
+    A: { titulo: "Fase A · preparar", lede: "Tramo común: todo el lote pasa por aquí antes de dividirse.", pasos: ["lectura", "limpieza", "orden", "sintesis", "corte"] },
+    B: { titulo: "Rama B · construir (60 %)", lede: "El histórico arma las estructuras que la Rama C va a reutilizar.", pasos: ["almacen", "btree", "indice", "fraude", "cocompra", "trie"] },
+    C: { titulo: "Rama C · atender (40 %)", lede: "El 40 % completa el inventario y el resto del estado que construyó B. El dashboard se abre después, sobre ese mismo resultado.", pasos: ["cola", "heap", "lookup", "orquestador", "fraudeC", "reco", "cocompraC", "panel"] }
+  };
+  const defs = {
+    lectura: { fase: "A", label: "1 Lectura", title: "Lectura por bloques", teoria: "1 Lectura", generic: "El archivo se lee en bloques de tamaño fijo, no fila por fila ni completo de una vez. Cada bloque llega en el orden del archivo, sin limpiar ni ordenar todavía.", consume: "Lee directamente el CSV de REES46 (`2019-Oct.csv`) con `pd.read_csv(..., chunksize=...)`. En esta miniatura el archivo son las 13 filas de `RAW`.", frames: () => RAW.map((_, i) => ({ i, nota: i === 0 ? "Llega el primer bloque de una fila." : "Llega la fila " + i + " (" + RAW[i].time + " " + RAW[i].tipo + ")." })), render: (f, host) => { host.appendChild(chips(RAW.slice(0, f.i + 1).map((r) => [r.time + " · " + r.tipo, "fila " + r.idx + " · " + r.producto, r.idx === f.i ? "on" : ""]))); host.appendChild(relato(f.nota)); } },
+    limpieza: { fase: "A", label: "2 Limpieza", title: "Vacíos, relleno y duplicados", teoria: "2 Limpieza", generic: "Antes de ordenar, se descartan filas con campos críticos ausentes (dropna), se rellenan con un valor neutro los campos de texto opcionales que falten (fillna), y se elimina cualquier fila que repita exactamente la misma clave de otra ya vista (drop_duplicates, usando una tabla hash).", consume: "Recibe las filas crudas del paso anterior. Usa `preparar_eventos`: `dropna` sobre event_time, event_type, product_id, price, user_id y user_session, luego `fillna(\"unknown\")` en category_code y brand, luego `drop_duplicates`.", frames: () => M.limpieza, render: (f, host) => { host.appendChild(chips(f.estado.map((e) => [e.row.time + " · " + e.row.tipo, "fila " + e.row.idx + " · " + (e.resultado === "pendiente" ? "sin procesar" : e.resultado === "queda" ? "se queda" : e.resultado === "vacio" ? "vacío, fuera" : "duplicado, fuera"), e.resultado === "queda" ? "on" : e.resultado === "pendiente" ? "dim" : "bad"]))); host.appendChild(relato(f.nota)); } },
+    orden: { fase: "A", label: "3 Orden", title: "Orden temporal con merge sort", teoria: "3 Orden", generic: "Las filas que sobrevivieron a la limpieza se ordenan por tiempo con merge sort: se parten en corridas de tamaño 1 y se van fusionando de a pares, siempre comparando las cabezas de cada corrida. Si dos filas empatan en el minuto exacto, desempata el índice original de archivo. Por encima de 100.000 filas, cada bloque se ordena así y mezcla_k junta los bloques con un heap de cabezas.", consume: "Recibe las " + M.clean.length + " filas limpias, sin orden. Usa `ordenar_indices` y `merge_sort` con clave (event_time, índice). Si el lote pasa de 100.000, entra `mezcla_k`. La miniatura parte el lote en bloques de 4 para mostrar esa mezcla.", frames: () => ui.modo.orden === "k" ? M.k : M.merge, render: renderOrden },
+    sintesis: { fase: "A", label: "4 Síntesis", title: "Inyección de datos sintéticos", teoria: "4 Síntesis", generic: "El CSV de REES46 no trae dispositivo, medio de pago, tipo de entrega, bandera de fraude ni prioridad. preparar_eventos genera esas columnas con una función determinista, huella(semilla, usuario, producto): el mismo usuario y producto, con la misma semilla, siempre producen el mismo valor sintético.", consume: "Recibe las " + M.sorted.length + " filas ya ordenadas por tiempo. Usa `huella(SEED, user_id, product_id)` para device_id, payment_id, entrega y fraude_confirmado; después aplica la tabla de reglas de prioridad 1 a 6.", frames: () => M.sintesis, render: renderSintesis },
+    corte: { fase: "A", label: "5 Corte", title: "Corte temporal 60/40", teoria: "5 Corte", generic: "Con el lote ya limpio, ordenado y sintetizado, se corta por posición: el primer 60 % alimenta la Rama B y el 40 % restante se reproduce como stream de la Rama C. El corte cae sobre un arreglo ya ordenado por tiempo. Sirve para construir el motor solo con el pasado y puntuar después lo que ocurre más tarde. La razón completa está en la sección Por qué 60/40.", consume: "Recibe las " + M.enriched.length + " filas completas, ya limpias, ordenadas y sintetizadas. El corte cae en " + M.corte + ". Usa `cortes_temporales(n)`: `train = max(1, int(n × 0.60))`.", frames: () => [0, 1, 2].map((fase) => ({ fase, nota: fase === 0 ? M.enriched.length + " eventos ordenados por tiempo. El corte todavía no existe." : fase === 1 ? "Posiciones 0 a " + (M.corte - 1) + " son el histórico: Rama B." : "Posiciones " + M.corte + " a " + (M.enriched.length - 1) + " son el stream: Rama C." })), render: (f, host) => { host.appendChild(chips(M.enriched.map((ev, i) => { const enB = f.fase >= 1 && i < M.corte, enC = f.fase >= 2 && i >= M.corte; return [ev.time, "p" + ev.pos + " · " + ev.etiqueta, enB ? "on" : enC ? "bad" : "", enB ? "Rama B" : enC ? "Rama C" : ""]; }))); host.appendChild(relato(f.nota)); if (f.fase === 2) host.appendChild(callout("Misma hora, dos lados del corte", "09:40 queda en la posición " + (M.corte - 1) + " (Rama B) y en la posición " + M.corte + " (Rama C). El índice de archivo es el que decide de qué lado queda cada una.")); } },
+    almacen: { fase: "B", label: "6 Almacén", title: "Hash, matriz dispersa y LRU", teoria: "6 Almacén", generic: "Cada evento del histórico llama a Almacen.actualizar en este orden. Primero el catálogo, un diccionario por product_id: encontrar la ficha es O(1) esperado, porque el diccionario es la tabla hash. Si el producto no existe, nace la ficha; si existe, solo sube la popularidad. Segundo, la matriz dispersa suma 1 en usuario y producto. Tercero, el LRU recuerda las últimas fichas consultadas y, cuando se llena, desaloja la menos recientemente usada.", consume: "Recibe los " + M.train.length + " eventos del histórico (60 %), en su orden temporal. Usa `Almacen.actualizar`, llamado desde `actualizar_almacen`. En el notebook el cupo del LRU es 256; aquí es 3.", frames: () => M.almacen.slice(0, M.train.length + 1), render: renderAlmacen },
+    btree: { fase: "B", label: "7 B+Tree", title: "Índice ordenado de precios (vista ampliada)", teoria: "7 B+Tree", generic: "Un B+Tree guarda las claves ordenadas en hojas enlazadas entre sí. Cuando una hoja excede su orden, se divide en dos y un separador sube al nivel de arriba. Si la clave que se inserta ya existe, no se crea una clave nueva: el valor se agrega a la lista de esa clave.", consume: "En el flujo real de este recorrido, el B+Tree recibe solo 6 inserciones, un precio por producto nuevo del histórico. Esta vista amplía esa misma estructura con 15 inserciones: 13 precios distintos y 2 repetidos en productos distintos, para que las divisiones y el precio repetido se vean. Notebook: `ArbolBPlus.insertar`, orden real 32; aquí, orden 3.", frames: () => [{ precio: 0, producto: "", dup: false, division: false, hojas: [{ claves: [], valores: [] }], arbol: { hoja: true, claves: [], valores: [] }, nota: "El árbol empieza como una sola hoja vacía. Todavía no hay ramas: la primera clave nace en esa hoja." }].concat(M.tree), render: renderArbol },
+    indice: { fase: "B", label: "8 Índice", title: "Grafo de sesión y después el modelo", teoria: "8 Índice", generic: "Este paso construye dos cosas, en este orden. Primero el grafo de sesión: productos distintos de la misma visita quedan unidos, sin mirar si se parecen. Después el modelo: cada ficha se vuelve un vector de precio, popularidad, categoría y marca, y esos vectores entran a un índice HNSW. Si hnswlib no está, el mismo índice responde con KNN exacto. La tabla de vecinos es la consulta de ese índice; la fase C la pide más adelante y se queda con uno.", consume: "Recibe el histórico ya cargado en el almacén, " + M.train.length + " eventos. Primero `construir_grafo_sesion`. Después `construir_indice_productos`, que llama a `vector_producto` y a `IndiceVectorial`.", frames: () => ui.modo.indice === "vector" ? M.fichas.map((ficha) => ({ ficha: ficha, modo: "vector" })) : ui.modo.indice === "hnsw" ? M.fichas.map((ficha) => ({ ficha: ficha, modo: "hnsw" })) : M.sesion.map((f) => Object.assign({ grupo: "hist" }, f)).concat(M.regla.map((f) => Object.assign({ grupo: "regla" }, f))), render: renderIndice },
+    fraude: { fase: "B", label: "9 Fraude", title: "Bloom + Count-Min + conjunto exacto", teoria: "9 Fraude", generic: "construir_fraude recorre solo las compras del histórico. Cada compra suma 1 en el Count-Min, en la clave usuario|hora. Esa clave pasa por cinco hashes, h0 a h4. Cada hash se divide entre el ancho de la tabla y el resto elige la casilla de esa fila. En el dibujo el ancho es 16, así que el resto cae entre 0 y 15. Si la fila trae fraude_confirmado, el dispositivo y el pago entran al conjunto exacto. Si no, y huella(\"vigia\", dispositivo) módulo 50 da 0, el dispositivo queda vigilado: irá al Bloom y no al conjunto. Al cerrar el recorrido, el Bloom se llena con esa unión. Vista y carrito no escriben aquí. Permitir, revisar o bloquear corre después, en la Rama C.", consume: "Recibe solo las compras del histórico (" + M.train.filter(function (e) { return e.tipo === "purchase"; }).length + " de " + M.train.length + " eventos). Usa `construir_fraude`. El dibujo achica el Count-Min a 16 columnas y el Bloom a 16 bits; el notebook usa 4.096 columnas, y un Bloom de 9.816 bits con 7 hashes.", frames: () => M.fraudeB, render: renderFraudeB },
+    cocompra: { fase: "B", label: "10 Co-compra", title: "Grafo de productos comprados juntos", teoria: "10 Co-compra", generic: "Este paso arma un grafo de co-compra. Cada nodo es un producto. Una arista une dos productos comprados en la misma sesión, uno después del otro, y el objetivo es sugerir el segundo cuando alguien compra el primero. En esta miniatura, sH deja 10055 ↔ 1210. sB solo tiene 1001, así que ese nodo queda sin arista. Vista y carrito no entran. La vista ampliada muestra cómo el peso llega a 2.", consume: "Recibe las compras del histórico, ordenadas por tiempo dentro de cada sesión. Usa `construir_cocompra`.", frames: () => ui.modo.cocompra === "amp" ? M.amp.filter((f) => f.ev.fase === "B") : M.cocompra.filter((f) => f.ev.fase === "B"), render: renderCocompra },
+    trie: { fase: "B", label: "11 Trie", title: "Autocompletado por prefijo", teoria: "11 Trie", generic: "Cada producto deja dos frases en el trie: categoría marca, y marca categoría. Una búsqueda por prefijo recorre el trie letra por letra y junta, con un BFS, hasta 5 product_id de las ramas que calzan.", consume: "Recibe el catálogo ya cerrado del Almacén (" + new Set(M.train.map(function (e) { return e.producto; })).size + " productos distintos del histórico). Usa `Trie.insertar`, una vez por producto.", frames: () => M.trie.frames, render: (f, host) => { if (f.terminales.length) host.appendChild(tabla(["Texto en el terminal", "product_id"], f.terminales.map((t) => ({ cells: [t[0], t[1].join(", ")] })))); host.appendChild(relato(f.nota)); } },
+    cola: { fase: "C", label: "12 Cola", title: "FIFO del stream", teoria: "12 Cola", generic: "El 40 % restante entra a un deque en el mismo orden temporal en que quedó tras el corte. La cola no decide nada todavía: solo conserva el orden de llegada para dárselo al heap como segunda clave.", consume: "Recibe las " + M.stream.length + " posiciones posteriores al corte. Usa `deque(range(corte_train, n))`.", frames: () => M.cola, render: renderCola },
+    heap: { fase: "C", label: "13 Heap", title: "Min-heap por prioridad", teoria: "13 Heap", generic: "Cada evento de la cola se empuja a un min-heap con clave (prioridad, orden de llegada, índice). El heap siempre entrega primero la clave menor: la prioridad más urgente y, entre empates, quien llegó antes.", consume: "Recibe los " + M.stream.length + " eventos de la cola, con la prioridad que la Fase A ya escribió. Usa `heapq.heappush` y `heapq.heappop`.", frames: () => M.heap, render: renderHeap },
+    lookup: { fase: "C", label: "14 Lookup", title: "Vuelve al mismo Almacén de B", teoria: "14 Lookup", generic: "Cada evento que sale del heap llama a Almacen.actualizar sobre el mismo objeto de la Rama B, en este orden. 1. Catálogo: diccionario por product_id. Si el producto no existe, nace la ficha y el precio entra al B+Tree; si existe, solo sube la popularidad. 2. Matriz dispersa: el par usuario-producto suma 1. 3. LRU, dentro de consultar: CACHE si la ficha ya estaba entre las últimas entradas y se mueve al final; HASH si hay que leerla del diccionario e insertarla. En el notebook el cupo es 256; aquí es 3.", consume: "Recibe los eventos del stream en el orden de salida del heap (paso 13). Usa `Almacen.actualizar` y `Almacen.consultar` sobre el objeto que ya existe desde el paso 6.", frames: () => M.almacen.slice(M.train.length + 1), render: renderAlmacen },
+    orquestador: { fase: "C", label: "15 Orquestador", title: "Una rama por evento", teoria: "15 Orquestador", generic: "Un evento abre una sola rama según su event_type: vista o carrito van a Recomendación; compra va a Fraude. Nunca las dos a la vez.", consume: "Recibe cada evento ya actualizado en el Almacén (paso 14). Es el `if event_type == purchase` dentro del `while` del heap.", frames: () => M.orq, render: renderOrquestador },
+    fraudeC: { fase: "C", label: "16 Fraude", title: "Solo lectura: decidir_fraude", teoria: "16 Fraude", generic: "decidir_fraude solo lee lo que la Rama B dejó armado. El Bloom y el Count-Min pueden abrir un motivo. Bloquear exige otra cosa: la etiqueta de la fila, o el dispositivo o el pago dentro del conjunto exacto. Motivo sin confirmación es revisar. Sin motivo, permitir. Ninguna de las tres estructuras se modifica.", consume: "Recibe las compras del stream que pasaron por Fraude en el orquestador. Consulta `fraude.bloom`, `fraude.cms` y `fraude.exactos`, construidos en el paso 9. No los actualiza.", frames: () => M.fraudeC, render: renderFraudeC },
+    reco: { fase: "C", label: "17 Recomendación", title: "Solo lectura: hibrido", teoria: "17 Recomendación", generic: "hibrido arma 5 productos para una vista o un carrito. La entrada es el product_id de ese evento, más lo que la sesión ya vio. La plaza 1 es el vecino más cercano del índice, por distancia L2. Las siguientes, hasta 4, son vecinos del grafo de sesión ordenados por peso. Si no se llega a 5, se completa con los productos más populares del histórico. El grafo y el índice no se modifican.", consume: "Recibe las vistas y carritos del stream que pasaron por Recomendación. Consulta `grafo_sesion` y `modelo`, los dos del paso 8. Ninguno se modifica.", frames: () => ["entrada", "hnsw", "grafo", "populares", "cierre"].map((etapa) => ({ etapa, visto: Number(ui.modo.reco) })), render: renderReco },
+    cocompraC: { fase: "C", label: "18 Co-compra", title: "Continúa el mismo grafo de B", teoria: "18 Co-compra", generic: "unir_compra toma cada compra permitida del stream, en orden cronológico, y la conecta con compras anteriores de la misma sesión, sobre el mismo grafo que construyó la Rama B, no uno nuevo. En la miniatura real esas dos compras llegan solas y no crean aristas. La vista ampliada sí sube pesos.", consume: "Recibe las compras del stream cuya decisión de fraude no fue bloquear. Usa `unir_compra` sobre el grafo del paso 10.", frames: () => ui.modo.cocompra === "amp" ? M.amp : M.cocompra, initial: () => ui.modo.cocompra === "amp" ? M.amp.findIndex((f) => f.ev.fase === "C") : M.cocompra.findIndex((f) => f.ev.fase === "C"), render: renderCocompra },
+    panel: { fase: "C", label: "19 Panel", title: "Panel y alertas del stream", teoria: "19 Panel", generic: "El paso 19 junta la traza del 40 %: por cada evento, qué encontró el lookup, qué rama tomó el orquestador y qué resultado produjo. En el dashboard del programa eso es únicamente la pestaña Panel y alertas. Buscar, precios, recomendar, simular y el grafo abren otros objetos, cada uno en su paso.", consume: "Recibe la traza completa de los " + M.stream.length + " eventos del stream, ya procesados por los pasos 12 a 18. Escribe los contadores de `panel` (ventas, consultas, alertas, bloqueos) y conserva `trazas`.", frames: () => M.servicio.map((_, i) => ({ i })), render: (f, host) => { host.appendChild(tabla(["Orden", "Evento", "Lookup", "Rama", "Resultado"], M.servicio.slice(0, f.i + 1).map((r, i) => ({ cells: r, cls: i === f.i ? "on" : "" })))); host.appendChild(relato("Fila " + (f.i + 1) + " de " + M.servicio.length + ". Buscar, precios, recomendar y el grafo no salen de esta tabla: cada pestaña abre su propio objeto.")); } }
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function node(tag, className, text) { const n = document.createElement(tag); if (className) n.className = className; if (text != null) n.textContent = text; return n; }
+  function chips(items) { const row = node("div", "chips"); items.forEach((it) => { const c = node("div", "chip " + (it[2] || "")); c.appendChild(node("b", "", it[0])); if (it[1]) c.appendChild(node("span", "", it[1])); if (it[3]) c.appendChild(node("small", "", it[3])); row.appendChild(c); }); return row; }
+  function relato(text) { return node("div", "relato", text); }
+  function aviso(titulo, text) { const d = node("div", "warn"); d.appendChild(node("strong", "", titulo)); d.appendChild(document.createTextNode(" " + text)); return d; }
+  function callout(titulo, text) { const d = node("div", "callout"); d.appendChild(node("strong", "", titulo)); d.appendChild(document.createTextNode(text)); return d; }
+  function bien(titulo, text) { const d = node("div", "ok"); d.appendChild(node("strong", "", titulo)); d.appendChild(document.createTextNode(text)); return d; }
+  function tabla(headers, rows) {
+    const t = node("table"), thead = node("thead"), hr = node("tr");
+    headers.forEach((h) => hr.appendChild(node("th", "", h)));
+    thead.appendChild(hr); t.appendChild(thead);
+    const tb = node("tbody");
+    rows.forEach((r) => { const tr = node("tr", r.cls || ""); r.cells.forEach((c) => tr.appendChild(node("td", "", String(c)))); tb.appendChild(tr); });
+    t.appendChild(tb); return t;
+  }
+  function svg(tag, attrs, text) {
+    const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.keys(attrs || {}).forEach((k) => { if (attrs[k] != null) n.setAttribute(k, String(attrs[k])); });
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function leyenda(textos) { const row = node("div", "leyenda"); textos.forEach((t) => row.appendChild(node("span", "", t))); return row; }
+  function fichaCorrida(ev, f) {
+    const salio = (f.parcial || []).some((p) => p.idx === ev.idx);
+    if (f.tomado && f.tomado.idx === ev.idx) return { tone: "on", tag: f.copia ? "se copia" : "entra ahora" };
+    if (salio) return { tone: "dim", tag: "ya salió" };
+    return { tone: "", tag: "" };
+  }
+  function bitsBloom(encendidos, pregunta) {
+    const row = node("div", "bits");
+    for (let i = 0; i < 16; i++) {
+      const on = encendidos.indexOf(i) >= 0;
+      const b = node("div", "bit" + (on ? " on" : "") + (pregunta && pregunta.indexOf(i) >= 0 ? " ask" : ""));
+      b.appendChild(node("small", "", String(i)));
+      b.appendChild(node("b", "", on ? "1" : "0"));
+      row.appendChild(b);
+    }
+    return row;
+  }
+  function svgFigura(nodos, aristas, activos, tocadas, posiciones, viewBox, etiqueta) {
+    const fig = svg("svg", { viewBox: viewBox, class: "grafo", role: "img", "aria-label": etiqueta });
+    const activas = new Set(activos.map(String));
+    const tocada = new Set(tocadas);
+    const radio = nodos.some((id) => String(id).length > 2) ? 28 : 22;
+    aristas.forEach((arista) => {
+      const a = String(arista[0]), b = String(arista[1]), peso = Number(arista[2]);
+      const p1 = posiciones[a], p2 = posiciones[b];
+      if (!p1 || !p2) return;
+      const marcada = tocada.has(a + "|" + b);
+      const mx = (p1[0] + p2[0]) / 2, my = (p1[1] + p2[1]) / 2;
+      const g = svg("g");
+      g.appendChild(svg("line", { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: marcada ? "#1e4d6b" : "#b7ad9e", "stroke-width": marcada ? 2.5 : Math.min(4, 1.2 + 0.7 * (peso - 1)) }));
+      if (marcada || peso > 1) {
+        g.appendChild(svg("rect", { x: mx - 10, y: my - 9, width: 20, height: 16, rx: 3, fill: "#fffcf8", stroke: marcada ? "#1e4d6b" : "#e2dacd" }));
+        g.appendChild(svg("text", { x: mx, y: my + 3, "text-anchor": "middle", fill: "#1b2430", "font-size": 11 }, String(peso)));
+      }
+      fig.appendChild(g);
+    });
+    nodos.forEach((id) => {
+      const p = posiciones[String(id)];
+      if (!p) return;
+      const activo = activas.has(String(id));
+      const g = svg("g");
+      g.appendChild(svg("circle", { cx: p[0], cy: p[1], r: radio, fill: activo ? "#efeae1" : "#f4f1ea", stroke: activo ? "#1e4d6b" : "#1b2430", "stroke-width": activo ? 2 : 1 }));
+      g.appendChild(svg("text", { x: p[0], y: p[1] + 4, "text-anchor": "middle", fill: "#1b2430", "font-size": String(id).length > 3 ? 10 : 13 }, String(id)));
+      fig.appendChild(g);
+    });
+    return fig;
+  }
+  function grafoCocompra(frame) {
+    const fig = svg("svg", { viewBox: "0 0 560 390", class: "grafo", role: "img", "aria-label": "Grafo ponderado de co-compra. Se resalta el producto que se está procesando y sus aristas." });
+    frame.aristas.forEach((arista) => {
+      const a = Number(arista[0]), b = Number(arista[1]), peso = Number(arista[2]);
+      const p1 = POS_COCOMPRA[a], p2 = POS_COCOMPRA[b];
+      if (!p1 || !p2) return;
+      const marcada = a === frame.ev.producto || b === frame.ev.producto;
+      const mx = (p1[0] + p2[0]) / 2, my = (p1[1] + p2[1]) / 2;
+      const g = svg("g");
+      g.appendChild(svg("line", { x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: marcada ? "#1e4d6b" : "#b7ad9e", "stroke-width": peso > 1 ? 3 : marcada ? 2.25 : 1.25 }));
+      g.appendChild(svg("rect", { x: mx - 24, y: my - 11, width: 48, height: 18, rx: 3, fill: "#fffcf8", stroke: marcada ? "#1e4d6b" : "#e2dacd" }));
+      g.appendChild(svg("text", { x: mx, y: my + 2, "text-anchor": "middle", fill: "#1b2430", "font-size": 10 }, "peso " + peso));
+      fig.appendChild(g);
+    });
+    frame.nodos.forEach((id) => {
+      const p = POS_COCOMPRA[id];
+      if (!p) return;
+      const activo = id === frame.ev.producto;
+      const g = svg("g");
+      g.appendChild(svg("circle", { cx: p[0], cy: p[1], r: 25, fill: activo ? "#efeae1" : "#f4f1ea", stroke: activo ? "#1e4d6b" : "#1b2430", "stroke-width": activo ? 2 : 1 }));
+      g.appendChild(svg("text", { x: p[0], y: p[1] + 4, "text-anchor": "middle", fill: "#1b2430", "font-size": 11 }, String(id)));
+      fig.appendChild(g);
+    });
+    return fig;
+  }
+  function dibujoConsulta(visto, elegidos, ajenos) {
+    const fig = svg("svg", { viewBox: "0 0 640 190", class: "grafo", role: "img", "aria-label": "Vecinos de " + visto + " en el grafo de sesión" });
+    const nodo = (x, y, id, activo) => {
+      const g = svg("g");
+      g.appendChild(svg("circle", { cx: x, cy: y, r: 26, fill: activo ? "#efeae1" : "#f4f1ea", stroke: activo ? "#1e4d6b" : "#1b2430", "stroke-width": activo ? 2 : 1 }));
+      g.appendChild(svg("text", { x: x, y: y + 4, "text-anchor": "middle", fill: "#1b2430", "font-size": 12 }, String(id)));
+      return g;
+    };
+    const arista = (x1, y1, x2, y2, peso, marcada) => {
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, g = svg("g");
+      g.appendChild(svg("line", { x1: x1, y1: y1, x2: x2, y2: y2, stroke: marcada ? "#1e4d6b" : "#b7ad9e", "stroke-width": marcada ? 2.5 : 1.25 }));
+      g.appendChild(svg("rect", { x: mx - 10, y: my - 9, width: 20, height: 16, rx: 3, fill: "#fffcf8", stroke: marcada ? "#1e4d6b" : "#e2dacd" }));
+      g.appendChild(svg("text", { x: mx, y: my + 3, "text-anchor": "middle", fill: "#1b2430", "font-size": 11 }, String(peso)));
+      return g;
+    };
+    fig.appendChild(svg("text", { x: 100, y: 22, "text-anchor": "middle", fill: "#8a8175", "font-size": 11 }, "visto"));
+    if (elegidos[0]) fig.appendChild(arista(100, 96, 250, 96, elegidos[0].peso, true));
+    fig.appendChild(nodo(100, 96, visto, true));
+    if (elegidos[0]) fig.appendChild(nodo(250, 96, elegidos[0].producto, true));
+    else fig.appendChild(svg("text", { x: 250, y: 100, fill: "#5d6876", "font-size": 12 }, "sin vecinos"));
+    if (ajenos[0]) {
+      fig.appendChild(svg("text", { x: 500, y: 22, "text-anchor": "middle", fill: "#8a8175", "font-size": 11 }, "otra arista, no se consulta"));
+      fig.appendChild(arista(430, 70, 570, 150, ajenos[0].peso, false));
+      fig.appendChild(nodo(430, 70, ajenos[0].a, false));
+      fig.appendChild(nodo(570, 150, ajenos[0].b, false));
+    }
+    return fig;
+  }
+  function medidaNodo(nodo) {
+    const celdas = Math.max(nodo.claves.length, 1);
+    let extras = 1;
+    if (nodo.hoja && nodo.valores) nodo.valores.forEach((v) => { extras = Math.max(extras, Math.max(v.length, 1)); });
+    return { w: celdas * 62, h: nodo.hoja ? 28 + extras * 14 : 38 };
+  }
+  function moverCaja(caja, dx) {
+    return { nodo: caja.nodo, x: caja.x + dx, y: caja.y, w: caja.w, h: caja.h, hijos: caja.hijos.map((hijo) => moverCaja(hijo, dx)) };
+  }
+  function disponerArbol(nodo, y) {
+    const medida = medidaNodo(nodo);
+    if (!nodo.hijos || !nodo.hijos.length) return { caja: { nodo: nodo, x: 0, y: y, w: medida.w, h: medida.h, hijos: [] }, ancho: medida.w };
+    const dispuestos = nodo.hijos.map((hijo) => disponerArbol(hijo, y + medida.h + 58));
+    const anchoHijos = dispuestos.reduce((suma, item) => suma + item.ancho, 0) + 22 * (dispuestos.length - 1);
+    const ancho = Math.max(medida.w, anchoHijos);
+    let cursor = (ancho - anchoHijos) / 2;
+    const hijos = dispuestos.map((item) => { const caja = moverCaja(item.caja, cursor); cursor += item.ancho + 22; return caja; });
+    return { caja: { nodo: nodo, x: (ancho - medida.w) / 2, y: y, w: medida.w, h: medida.h, hijos: hijos }, ancho: ancho };
+  }
+  function arbolSvg(raiz, activo) {
+    const dispuesto = disponerArbol(raiz, 28);
+    const caja = dispuesto.caja;
+    const ramas = [], hojas = [];
+    const visitar = (actual) => {
+      if (actual.nodo.hoja) hojas.push(actual);
+      actual.hijos.forEach((hijo, i) => {
+        const n = Math.max(actual.nodo.claves.length, 1);
+        ramas.push({ x1: actual.x + (i / n) * actual.w, y1: actual.y + actual.h, x2: hijo.x + hijo.w / 2, y2: hijo.y });
+        visitar(hijo);
+      });
+    };
+    visitar(caja);
+    const altos = [caja].concat(hojas).map((item) => item.y + item.h);
+    const alto = Math.max.apply(null, altos) + 36;
+    const cajas = [];
+    const aplanar = (actual) => { cajas.push(actual); actual.hijos.forEach(aplanar); };
+    aplanar(caja);
+    const fig = svg("svg", { class: "arbol", width: Math.max(dispuesto.ancho + 48, 680), height: alto, role: "img", "aria-label": "Árbol B+ con nodos internos, ramas y hojas enlazadas" });
+    ramas.forEach((rama) => fig.appendChild(svg("line", { x1: rama.x1 + 24, y1: rama.y1, x2: rama.x2 + 24, y2: rama.y2, stroke: "#1b2430", "stroke-width": 1.5 })));
+    hojas.slice(0, -1).forEach((hoja, i) => fig.appendChild(svg("line", { x1: hoja.x + hoja.w + 24, y1: hoja.y + hoja.h / 2, x2: hojas[i + 1].x + 24, y2: hojas[i + 1].y + hojas[i + 1].h / 2, stroke: "#1e4d6b", "stroke-dasharray": "4 3" })));
+    cajas.forEach((item) => {
+      const g = svg("g");
+      g.appendChild(svg("rect", { x: item.x + 24, y: item.y, width: item.w, height: item.h, rx: 5, fill: item.nodo.hoja ? "#fffcf8" : "#efeae1", stroke: "#c9bfb0" }));
+      if (!item.nodo.claves.length) g.appendChild(svg("text", { x: item.x + 24 + item.w / 2, y: item.y + item.h / 2, "text-anchor": "middle", "dominant-baseline": "middle", fill: "#8a8175", "font-size": 12 }, "vacía"));
+      else {
+        const celda = item.w / item.nodo.claves.length;
+        item.nodo.claves.forEach((clave, i) => {
+          const x = item.x + 24 + i * celda;
+          const repetida = ((item.nodo.valores && item.nodo.valores[i]) || []).length > 1;
+          const activa = clave === activo;
+          if (i > 0) g.appendChild(svg("line", { x1: x, y1: item.y, x2: x, y2: item.y + item.h, stroke: "#e2dacd" }));
+          g.appendChild(svg("rect", { x: x + 3, y: item.y + 3, width: celda - 6, height: item.nodo.hoja ? 20 : item.h - 6, rx: 3, fill: activa ? "#1e4d6b" : "transparent", stroke: repetida ? "#1e4d6b" : "transparent" }));
+          g.appendChild(svg("text", { x: x + celda / 2, y: item.y + (item.nodo.hoja ? 16 : item.h / 2), "text-anchor": "middle", "dominant-baseline": "middle", fill: activa ? "#ffffff" : "#1b2430", "font-size": 13, "font-weight": 650 }, String(clave)));
+          if (item.nodo.hoja && item.nodo.valores && item.nodo.valores[i]) item.nodo.valores[i].forEach((valor, k) => g.appendChild(svg("text", { x: x + celda / 2, y: item.y + 34 + k * 13, "text-anchor": "middle", fill: repetida ? "#1e4d6b" : "#5d6876", "font-size": 10 }, valor)));
+        });
+      }
+      fig.appendChild(g);
+    });
+    const wrap = node("div", "dibujo");
+    wrap.appendChild(fig);
+    return wrap;
+  }
+  function heapSvg(arr, foco, op) {
+    const nodeW = 128, nodeH = 52, vGap = 48;
+    if (!arr.length) {
+      const fig = svg("svg", { class: "arbol", width: 560, height: 96, role: "img", "aria-label": "Min-heap vacío" });
+      fig.appendChild(svg("rect", { x: 216, y: 24, width: nodeW, height: nodeH, rx: 5, fill: "#fffcf8", stroke: "#c9bfb0" }));
+      fig.appendChild(svg("text", { x: 280, y: 54, "text-anchor": "middle", fill: "#8a8175", "font-size": 13 }, "vacío"));
+      const wrap = node("div", "dibujo"); wrap.appendChild(fig); return wrap;
+    }
+    const niveles = Math.floor(Math.log2(arr.length)) + 1;
+    const hojas = 2 ** (niveles - 1);
+    const slot = nodeW + 36, padX = 28;
+    const anchoInterior = hojas * slot;
+    const ancho = anchoInterior + padX * 2;
+    const alto = 28 + niveles * nodeH + (niveles - 1) * vGap + 8;
+    const cajaDe = (i) => {
+      const nivel = Math.floor(Math.log2(i + 1));
+      const enNivel = i - (2 ** nivel - 1);
+      const huecos = 2 ** nivel;
+      return { x: padX + ((enNivel + 0.5) / huecos) * anchoInterior - nodeW / 2, y: 26 + nivel * (nodeH + vGap) };
+    };
+    const fig = svg("svg", { class: "arbol", width: Math.max(ancho, 560), height: alto, role: "img", "aria-label": "Min-heap binario. La raíz es la prioridad menor." });
+    arr.forEach((ev, i) => {
+      if (i === 0) return;
+      const padre = Math.floor((i - 1) / 2), desde = cajaDe(padre), hasta = cajaDe(i);
+      const sube = op === "push" && ev.idx === foco.idx;
+      fig.appendChild(svg("line", { x1: desde.x + nodeW / 2, y1: desde.y + nodeH, x2: hasta.x + nodeW / 2, y2: hasta.y, stroke: sube ? "#1e4d6b" : "#1b2430", "stroke-width": sube ? 2 : 1.5 }));
+    });
+    fig.appendChild(svg("text", { x: cajaDe(0).x + nodeW / 2, y: 16, "text-anchor": "middle", fill: "#8a8175", "font-size": 11 }, "raíz · próxima salida"));
+    arr.forEach((ev, i) => {
+      const caja = cajaDe(i);
+      const activo = op === "push" ? ev.idx === foco.idx : i === 0;
+      const g = svg("g");
+      g.appendChild(svg("rect", { x: caja.x, y: caja.y, width: nodeW, height: nodeH, rx: 5, fill: activo ? "#1e4d6b" : "#fffcf8", stroke: i === 0 || activo ? "#1e4d6b" : "#c9bfb0", "stroke-width": i === 0 ? 2 : 1 }));
+      g.appendChild(svg("text", { x: caja.x + nodeW - 10, y: caja.y + 14, "text-anchor": "end", fill: activo ? "#ffffff" : "#8a8175", "font-size": 10 }, String(i)));
+      g.appendChild(svg("text", { x: caja.x + nodeW / 2, y: caja.y + 28, "text-anchor": "middle", fill: activo ? "#ffffff" : "#1b2430", "font-size": 16, "font-weight": 650 }, String(ev.prioridad)));
+      g.appendChild(svg("text", { x: caja.x + nodeW / 2, y: caja.y + 44, "text-anchor": "middle", fill: activo ? "#ffffff" : "#5d6876", "font-size": 11 }, ev.etiqueta));
+      fig.appendChild(g);
+    });
+    const wrap = node("div", "dibujo"); wrap.appendChild(fig); return wrap;
+  }
+  function renderSintesis(f, host) {
+    const ev = f.actual;
+    if (!ev) {
+      const grid = node("div", "dos");
+      const a = node("div"); a.appendChild(node("div", "k", "Entrada · columnas de REES46")); a.appendChild(node("p", "", "event_time, event_type, product_id, category_code, brand, price, user_id, user_session."));
+      const b = node("div"); b.appendChild(node("div", "k", "Todavía no se ha escrito nada sintético")); b.appendChild(node("p", "", "Este paso va a agregar evento_id, hora, device_id, payment_id, prioridad, etiqueta, fraude_confirmado y disponible."));
+      grid.appendChild(a); grid.appendChild(b); host.appendChild(grid);
+    } else {
+      host.appendChild(node("div", "k", "Entrada REES46 · fila " + ev.idx + " · producto " + ev.producto));
+      host.appendChild(tabla(["event_time", "event_type", "product_id", "category_code", "brand", "price", "user_id", "user_session"], [{ cells: [ev.time, ev.tipo, ev.producto, ev.categoriaRellenada ? ev.categoria + " · vacío en el CSV" : ev.categoria, ev.marcaRellenada ? ev.marca + " · vacío en el CSV" : ev.marca, ev.precio, ev.usuario, ev.sesion] }]));
+      const grid = node("div", "dos");
+      const csv = node("div"); csv.appendChild(node("div", "k", "Del CSV"));
+      csv.appendChild(chips([[ev.time, "event_time"], [ev.tipo, "event_type"], [String(ev.producto), "product_id"], [ev.categoria, "category_code"], [ev.marca, "brand"], [String(ev.precio), "price"], [String(ev.usuario), "user_id"], [ev.sesion, "user_session"]]));
+      const sin = node("div"); sin.appendChild(node("div", "k", "Sintético"));
+      sin.appendChild(chips([[ev.eventoId, "evento_id", "on", "se agrega"], [ev.hora, "hora", "on", "se agrega"], [ev.dev, "device_id", "on", "se agrega"], [ev.pay, "payment_id", "on", "se agrega"], [String(ev.prioridad), "prioridad", "on", "se agrega"], [ev.etiqueta, "etiqueta", "on", "se agrega"], [ev.fraudeConfirmado ? "true" : "false", "fraude_confirmado", "on", "se agrega"], [ev.disponible ? "sí" : "no", "disponible", "on", "se agrega"]]));
+      grid.appendChild(csv); grid.appendChild(sin); host.appendChild(grid);
+      const revelados = M.enriched.filter((item) => item.pos <= ev.pos);
+      host.appendChild(node("div", "k", "Filas que ya tienen los datos completos"));
+      host.appendChild(chips(revelados.map((item) => [item.producto + " · " + item.etiqueta, item.eventoId + " · " + item.dev, item.idx === ev.idx ? "on" : ""])));
+    }
+    host.appendChild(relato(f.nota));
+  }
+  function renderOrden(f, host) {
+    if (ui.modo.orden === "k") {
+      const nombres = f.bloques.map((_, b) => String.fromCharCode(65 + b));
+      const grid = node("div", "k-bloques");
+      f.bloques.forEach((bloque, b) => {
+        const col = node("div");
+        col.appendChild(node("div", "k", "Bloque " + nombres[b] + " · ya ordenado"));
+        col.appendChild(chips(bloque.map((ev, pos) => {
+          const salioAqui = f.bloque === b && f.salio && f.salio.idx === ev.idx;
+          const cabeza = pos === f.cursor[b];
+          const viejo = pos < f.cursor[b] && !salioAqui;
+          return [ev.time, ev.tipo, salioAqui || cabeza ? "on" : viejo ? "dim" : "", salioAqui ? "salió" : cabeza ? "cabeza" : "fila " + ev.idx];
+        })));
+        grid.appendChild(col);
+      });
+      host.appendChild(grid);
+      const cabezas = f.bloques.map((bloque, b) => f.cursor[b] < bloque.length ? { ev: bloque[f.cursor[b]], b: b } : null).filter(Boolean).sort((x, y) => comparar(x.ev, y.ev) || x.b - y.b);
+      host.appendChild(node("div", "k", "Heap mínimo · una cabeza por bloque que todavía tiene filas"));
+      host.appendChild(cabezas.length ? chips(cabezas.map((item, pos) => [item.ev.time, "bloque " + nombres[item.b] + " · fila " + item.ev.idx, pos === 0 ? "on" : "", pos === 0 ? "menor" : "espera"])) : node("p", "muted", "Vacío. No queda ninguna cabeza."));
+      host.appendChild(node("div", "k", "Salida"));
+      host.appendChild(f.salida.length ? chips(f.salida.map((ev, pos) => [ev.time, (pos + 1) + "º · fila " + ev.idx, f.salio && ev.idx === f.salio.idx ? "on" : ""])) : node("p", "muted", "Vacía. El heap todavía no ha sacado ninguna cabeza."));
+      host.appendChild(relato(f.nota));
+      return;
+    }
+    const etiqueta = f.kind === "inicio" ? "Antes de la primera pasada" : f.kind === "fin" ? "Lote ordenado" : f.kind === "cierre" ? "Fin de la pasada " + f.pasada : "Pasada " + f.pasada + " · corridas de hasta " + f.tamano + " · mezcla " + f.par + " de " + f.pares;
+    host.appendChild(node("div", "k", etiqueta));
+    const titulo = f.kind === "inicio" ? "Orden de supervivencia. Todavía no es el orden del día." : f.kind === "paso" ? "Orden con el que empezó esta pasada" : f.kind === "fin" ? "Orden cronológico final" : "El lote, después de esta pasada";
+    host.appendChild(node("div", "k", titulo));
+    const ancho = (f.izquierda || []).length + (f.derecha || []).length;
+    host.appendChild(chips(f.arreglo.map((ev, pos) => {
+      const enVentana = f.desde >= 0 && pos >= f.desde && pos < f.desde + ancho;
+      const tomado = enVentana && f.tomado && f.tomado.idx === ev.idx;
+      return [ev.time, "fila " + ev.idx + " · " + ev.tipo, tomado ? "on" : f.kind === "paso" && !enVentana ? "dim" : "", f.kind === "paso" ? (enVentana ? "esta mezcla" : "fuera") : ""];
+    })));
+    if (f.kind === "paso") {
+      const grid = node("div", "dos");
+      const iz = node("div"); iz.appendChild(node("div", "k", "Corrida izquierda")); iz.appendChild(chips(f.izquierda.map((ev) => { const estado = fichaCorrida(ev, f); return [ev.time, "fila " + ev.idx, estado.tone, estado.tag]; })));
+      const de = node("div"); de.appendChild(node("div", "k", "Corrida derecha"));
+      if (!f.derecha.length) de.appendChild(node("p", "muted", "Esta mezcla no tiene corrida derecha. Lo que queda a la izquierda se copia."));
+      else de.appendChild(chips(f.derecha.map((ev) => { const estado = fichaCorrida(ev, f); return [ev.time, "fila " + ev.idx, estado.tone, estado.tag]; })));
+      grid.appendChild(iz); grid.appendChild(de); host.appendChild(grid);
+    }
+    if (f.parcial && f.parcial.length && f.kind === "paso") {
+      host.appendChild(node("div", "k", f.copia ? "Se copia al resultado de esta mezcla" : "Resultado de esta mezcla"));
+      const box = node("div", "parcial-box");
+      box.appendChild(chips(f.parcial.map((ev, pos) => [ev.time, (pos + 1) + "º · fila " + ev.idx, f.tomado && ev.idx === f.tomado.idx ? "on" : "", f.tomado && ev.idx === f.tomado.idx ? "acaba de entrar" : ""])));
+      host.appendChild(box);
+    }
+    if (f.kind === "paso" && f.escrito && f.escrito.length > f.parcial.length) {
+      host.appendChild(node("div", "k", "Ya escrito en esta pasada"));
+      host.appendChild(chips(f.escrito.map((ev, pos) => [ev.time, (pos + 1) + "º · fila " + ev.idx, pos >= f.escrito.length - f.parcial.length ? "on" : "dim"])));
+      host.appendChild(node("p", "muted", "Las mezclas anteriores de esta pasada ya quedaron a la izquierda, tenues. La mezcla actual es la que está marcada."));
+    }
+    if (f.empate) host.appendChild(aviso("La hora empata", "Las dos cabezas tienen el mismo minuto. Gana el índice de archivo menor, la misma regla que la comparación menor o igual del notebook."));
+    host.appendChild(relato(f.nota));
+  }
+  function renderAlmacen(f, host) {
+    if (f.actual) host.appendChild(chips([[f.actual.etiqueta + " " + f.actual.time, "fase " + f.actual.fase, "on", f.origen || ""]]));
+    host.appendChild(node("div", "k", "1. Catálogo · diccionario por product_id"));
+    host.appendChild(f.catalogo.length ? tabla(["producto", "categoria", "marca", "precio", "disponible", "popularidad"], f.catalogo.map((c) => ({ cells: [c.producto, c.categoria, c.marca, c.precio, c.disponible ? "sí" : "no", c.popularidad], cls: f.actual && c.producto === f.actual.producto ? "on" : "" }))) : node("p", "muted", "Catálogo vacío."));
+    host.appendChild(node("div", "k", "2. Matriz dispersa · solo los pares usuario-producto que ya ocurrieron"));
+    host.appendChild(f.pares.length ? tabla(["usuario", "producto", "veces", "este evento"], f.pares.map((p) => ({ cells: [p.usuario, p.producto, p.veces, f.actual && p.usuario === f.actual.usuario && p.producto === f.actual.producto ? "sí" : ""], cls: f.actual && p.usuario === f.actual.usuario && p.producto === f.actual.producto ? "on" : "" }))) : node("p", "muted", "Sin pares todavía."));
+    const lru = node("div", "chips");
+    lru.appendChild(node("span", "flecha", "3. LRU, más antigua a la izquierda. Cupo 3."));
+    f.lru.forEach((id) => { const c = node("div", "chip" + (f.actual && id === f.actual.producto ? " on" : "")); c.appendChild(node("b", "", String(id))); lru.appendChild(c); });
+    if (f.origen) lru.appendChild(node("span", "chip on", f.origen));
+    host.appendChild(lru);
+    if (f.evicted != null) host.appendChild(aviso("Desalojo", "Sale " + f.evicted + ", la entrada más antigua del LRU."));
+    host.appendChild(relato(f.nota));
+  }
+  function renderArbol(f, host) {
+    host.appendChild(arbolSvg(f.arbol, f.precio));
+    host.appendChild(leyenda(["Nodo interno: solo un separador, sin product_id.", "Hoja: el precio real y sus product_id.", "Línea punteada: enlace a la hoja siguiente."]));
+    host.appendChild(callout("Por qué un precio puede verse arriba y también en la hoja", "Este es un B+Tree. Al partir una hoja, la primera clave de la derecha sube como separador y además permanece en la hoja, porque ahí vive la lista de product_id. Entre nodos internos no se repite: la clave del medio se mueve hacia arriba. En un B-tree la mediana sube y desaparece del hijo, por eso ahí ningún valor se ve dos veces."));
+    if (f.dup) host.appendChild(aviso("Precio repetido en distinto product_id", "El precio " + f.precio + " ya tenía un product_id. " + f.producto + " se agrega a la misma clave. Una búsqueda por rango que toque ese precio devuelve ambos productos."));
+    host.appendChild(relato(f.nota));
+    if (ui.frame === framesDe().length - 1) {
+      const hojas = M.tree[M.tree.length - 1].hojas.length;
+      host.appendChild(bien("Resultado de esta vista ampliada", hojas + " hojas, " + new Set(TREE_INSERTS.map((t) => t[0])).size + " precios distintos, 2 de ellos con más de un product_id."));
+    }
+  }
+  function renderIndice(f, host) {
+    if (f.modo === "vector") {
+      const ev = f.ficha;
+      host.appendChild(node("p", "", "Segunda construcción. Cada ficha del catálogo se vuelve un vector de 14 casillas: precio, popularidad, categoría y marca. Aquí todavía no se buscan vecinos."));
+      host.appendChild(tabla(["Dato", "Valor del producto", "Dónde queda en el vector"], [
+        { cells: ["Precio", String(ev.precio), "Casilla 0 = " + ev.vector[0].toFixed(2) + ". Es log(1 + precio) dividido por el precio más alto del catálogo."] },
+        { cells: ["Popularidad", "1", "Casilla 1 = 1. En esta miniatura cada producto se vio una vez."] },
+        { cells: ["Categoría", ev.categoria, "Una de las casillas 2 a 9 queda en 1. Aquí es la " + ev.cat + ". Las otras quedan en 0."] },
+        { cells: ["Marca", ev.marca, "Una de las casillas 10 a 13 queda en 1. Aquí es la " + ev.marcaCasilla + ". Las otras quedan en 0."] }
+      ]));
+      host.appendChild(chips(ev.vector.map((valor, pos) => [pos + ": " + (valor ? valor.toFixed(2) : "0"), pos === 0 ? "precio" : pos === 1 ? "popularidad" : pos < 10 ? "categoría" : "marca", valor ? "on" : "dim"])));
+      return;
+    }
+    if (f.modo === "hnsw") {
+      const consulta = M.consultar(f.ficha.producto);
+      const cercano = consulta.distancias[0];
+      host.appendChild(node("p", "", "Producto de partida: " + f.ficha.producto + ". Se mide contra los otros " + consulta.distancias.length + " del catálogo, no contra sí mismo."));
+      if (consulta.base && cercano) {
+        host.appendChild(tabla(["", "precio", "popularidad", "categoría", "marca"], [
+          { cells: [consulta.base.producto + " · producto de partida", consulta.base.vector[0].toFixed(2) + " (" + consulta.base.precio + ")", "1", consulta.base.categoria + " · casilla " + consulta.base.cat, consulta.base.marca + " · casilla " + consulta.base.marcaCasilla], cls: "on" },
+          { cells: [cercano.ficha.producto + " · el más cercano", cercano.ficha.vector[0].toFixed(2) + " (" + cercano.ficha.precio + ")", "1", cercano.ficha.categoria + " · casilla " + cercano.ficha.cat, cercano.ficha.marca + " · casilla " + cercano.ficha.marcaCasilla], cls: "ok" }
+        ]));
+        host.appendChild(tabla(["Otro producto", "Precio", "Categoría", "Marca", "Distancia L2", "Por qué queda a esa distancia"], consulta.distancias.map((item, i) => ({ cells: [item.ficha.producto, item.ficha.precio, item.ficha.categoria, item.ficha.marca, item.l2.toFixed(2), item.motivo], cls: i === 0 ? "ok" : "" }))));
+        host.appendChild(callout(f.ficha.producto + " no se compara consigo", "El más cercano es " + cercano.ficha.producto + ", a " + cercano.l2.toFixed(2) + ". " + cercano.motivo + " El índice guarda ese vecino."));
+      }
+      return;
+    }
+    host.appendChild(node("div", "k", f.grupo === "regla" ? "Ejemplo con pesos. El número sobre la arista es un peso de 2 o más. El último paso consulta, no escribe." : "Histórico de esta miniatura"));
+    if (f.consulta) host.appendChild(chips([["Ya vio " + f.consulta.visto, "", "on"], ["Paso 17 · candidatos_grafo", "", ""]]));
+    else if (f.sesion) host.appendChild(chips([["Sesión " + f.sesion, "", "on"]].concat((f.productos || []).map((producto) => [String(producto), "", ""]))));
+    else host.appendChild(node("p", "muted", "Ninguna sesión procesada."));
+    if (f.eventos && f.eventos.length) host.appendChild(tabla(["hora", "tipo", "producto", "usuario", "sesión"], f.eventos.map((ev) => ({ cells: [ev.time, ev.tipo, ev.producto, ev.usuario, ev.sesion] }))));
+    const nodos = Array.from(new Set((f.aristas || []).flatMap((arista) => [String(arista[0]), String(arista[1])])));
+    const primero = f.consulta && f.consulta.ranking[0];
+    const tocadas = f.consulta && primero ? [[f.consulta.visto, primero.producto].sort((a, b) => Number(a) - Number(b)).join("|")] : (f.cambios || []).map((cambio) => cambio.a + "|" + cambio.b);
+    const activos = f.consulta && primero ? [f.consulta.visto, primero.producto] : (f.productos || []);
+    if (nodos.length) host.appendChild(svgFigura(nodos, f.aristas, activos, tocadas, f.grupo === "regla" ? POS_REGLA : M.posSesion, f.grupo === "regla" ? "0 0 720 340" : "0 0 520 300", f.sesion ? "Sesión " + f.sesion : "Grafo de sesión"));
+    if (f.consulta) host.appendChild(tabla(["orden", "vecino de " + f.consulta.visto, "peso", "plaza del híbrido"], f.consulta.ranking.map((item, i) => ({ cells: [i + 1, item.producto, item.peso, i < 4 ? "entra en las 4 del grafo" : "queda fuera de la cuota"], cls: i === 0 ? "ok" : "" }))));
+    else if (f.cambios && f.cambios.length) host.appendChild(tabla(["par de esta sesión", "peso antes", "peso ahora"], f.cambios.map((cambio) => ({ cells: [cambio.a + " ↔ " + cambio.b, cambio.antes, cambio.peso] }))));
+    else if (f.sesion) host.appendChild(node("p", "muted", "Esta sesión no deja arista."));
+    host.appendChild(relato(f.nota));
+  }
+  function renderFraudeB(f, host) {
+    host.appendChild(node("div", "k", "Histórico de la rama. Solo las compras escriben."));
+    host.appendChild(chips(M.train.map((ev) => [ev.time + " · " + ev.etiqueta, ev.tipo === "purchase" ? "compra " + ev.producto : "no entra", f.foco && ev.idx === f.foco.idx ? "on" : ev.tipo === "purchase" ? "" : "dim"])));
+    host.appendChild(node("div", "k", "Conjunto exacto. Aquí sí se confirma."));
+    host.appendChild(f.exactos.length ? chips(f.exactos.map((id) => [id, "compra 08:20", "bad"])) : node("p", "muted", "Vacío hasta la primera compra con fraude_confirmado."));
+    host.appendChild(node("div", "k", "Count-Min, profundidad 5. Ancho 16 en el dibujo, 4.096 en el notebook."));
+    f.tabla.forEach((fila, i) => { const row = node("div", "cms"); row.appendChild(node("span", "", "h" + i)); fila.forEach((v, col) => { const c = node("div", "cell" + (v ? " hit" : "") + (f.columnas && f.columnas[i] === col ? " on" : "")); c.textContent = v > 0 ? String(v) : ""; row.appendChild(c); }); host.appendChild(row); });
+    const claves = Object.keys(f.cms);
+    if (claves.length) host.appendChild(tabla(["clave usuario|hora", "columnas", "mínimo"], claves.map((clave) => { const pos = CMS_POS[clave] || []; const minimo = pos.length ? Math.min.apply(null, pos.map((col, fila) => f.tabla[fila][col])) : 0; return { cells: [clave, pos.join(", "), minimo] }; })));
+    else host.appendChild(node("p", "muted", "Sin conteos todavía."));
+    host.appendChild(node("div", "k", "Bloom, 16 bits en el dibujo. En el notebook, m = 9.816 y k = 7."));
+    host.appendChild(bitsBloom(f.bits || [], null));
+    if (!f.bloom) host.appendChild(node("p", "muted", "Se arma al cerrar el recorrido. Compra por compra sigue en cero."));
+    host.appendChild(relato(f.nota));
+    if (f.bloom) host.appendChild(callout("El conjunto exacto es el que confirma", "dev-11-0 y pay-11-1 están en los bits y en el conjunto. En la Rama C, bloquear pide esa confirmación. Si el Bloom responde que está y el conjunto no lo tiene, la decisión es revisar."));
+  }
+  function renderFraudeC(f, host) {
+    const bits = M.fraudeB[M.fraudeB.length - 1].bits;
+    const devBits = BLOOM_POS[f.ev.dev] || [], payBits = BLOOM_POS[f.ev.pay] || [];
+    const pregunta = devBits.concat(payBits);
+    host.appendChild(chips([[f.ev.etiqueta + " · " + f.ev.time, f.ev.dev + " · " + f.ev.pay, "on", f.decision]]));
+    host.appendChild(tabla(["lectura", "qué mira", "resultado"], [
+      { cells: ["Bloom · dispositivo", devBits.join(", "), bloomContiene(f.ev.dev, bits) ? "contiene" : "fuera"] },
+      { cells: ["Bloom · pago", payBits.join(", "), bloomContiene(f.ev.pay, bits) ? "contiene" : "fuera"] },
+      { cells: ["Count-Min", f.ev.usuario + "|" + f.ev.hora, String(f.intensidad) + ", umbral 8"] },
+      { cells: ["Conjunto exacto", f.ev.dev + " / " + f.ev.pay, M.fraudeB[M.fraudeB.length - 1].exactos.indexOf(f.ev.dev) >= 0 || M.fraudeB[M.fraudeB.length - 1].exactos.indexOf(f.ev.pay) >= 0 ? "confirma" : "no está"] }
+    ]));
+    host.appendChild(bitsBloom(bits, pregunta));
+    host.appendChild(node("p", "muted", "El borde marca los bits que pregunta esta compra. contiene exige que los tres estén en 1. La consulta no escribe."));
+    host.appendChild(f.motivos.length ? chips(f.motivos.map((m) => [m, "", "dim"])) : node("p", "muted", "Sin motivos: permitir."));
+    host.appendChild(relato(f.nota));
+    if (f.decision === "revisar") host.appendChild(aviso("El Bloom avisa y el conjunto no confirma", "pay-13-1 cae en bits que ya encendieron dev-11-0 y pay-11-1. El conjunto exacto no lo tiene, así que la compra se revisa. En el notebook el filtro tiene 9.816 bits: esta coincidencia es del dibujo."));
+  }
+  function renderCocompra(f, host) {
+    const frames = framesDe();
+    const indice = frames.indexOf(f);
+    if (ui.modo.cocompra === "amp") {
+      host.appendChild(callout(ui.paso === "cocompra" ? "Simulación ampliada: cómo B construye pesos" : "Simulación ampliada: cómo C continúa el mismo grafo", "Cada avance procesa una compra y consulta únicamente las compras previas de su misma sesión. El borde resaltado señala el producto nuevo y las aristas que toca. Las posiciones no se mueven entre pasos."));
+      host.appendChild(tabla(["orden", "fase", "hora", "sesión", "compra", "previas que consulta"], frames.slice(0, indice + 1).map((item, i) => ({ cells: [i + 1, item.ev.fase, item.ev.time, item.ev.sesion, item.ev.producto, item === f ? (item.anteriores.join(", ") || "ninguna") : "—"], cls: item === f ? "on" : "" }))));
+    } else if (f.ev) {
+      host.appendChild(chips([["Fase " + f.ev.fase, f.ev.sesion + " · " + f.ev.time, "on"]]));
+    }
+    if (f.nodos && f.nodos.length) host.appendChild(grafoCocompra(f));
+    host.appendChild(f.nodos && f.nodos.length ? chips(f.nodos.map((n) => [String(n), "", n === f.ev.producto ? "on" : ""])) : node("p", "muted", "Sin nodos."));
+    host.appendChild(f.aristas.length ? chips(f.aristas.map((a) => [a[0] + " ↔ " + a[1], "peso " + a[2], a[0] === f.ev.producto || a[1] === f.ev.producto ? "on" : ""])) : node("p", "muted", "Sin aristas todavía."));
+    host.appendChild(relato(f.nota));
+  }
+  function renderCola(f, host) {
+    const row = node("div", "chips");
+    row.appendChild(node("span", "flecha", "entra →"));
+    f.items.forEach((ev, i) => { const c = node("div", "chip" + (i === f.items.length - 1 ? " on" : "")); c.appendChild(node("b", "", ev.etiqueta)); c.appendChild(node("span", "", ev.time)); if (i === 0) c.appendChild(node("small", "", "frente")); row.appendChild(c); });
+    row.appendChild(node("span", "flecha", "→ sale"));
+    host.appendChild(row);
+    host.appendChild(relato(f.n === 0 ? "El deque empieza vacío. El primero que entra queda en el frente." : f.n < 4 ? "Entra " + f.items[f.items.length - 1].etiqueta + " (" + f.items[f.items.length - 1].time + ") por detrás. El frente no cambia." : "Las 4 llegadas están en la cola, en el orden del archivo ya ordenado por tiempo."));
+  }
+  function renderHeap(f, host) {
+    host.appendChild(heapSvg(f.arr, f.item, f.op));
+    host.appendChild(leyenda(["El número grande es la prioridad. El número chico de la esquina es el índice del arreglo.", "Hijo izquierdo de i en 2i+1. Hijo derecho en 2i+2.", "El padre es menor o igual que sus hijos. Los hermanos no quedan ordenados de izquierda a derecha."]));
+    const salieron = node("div", "chips");
+    salieron.appendChild(node("span", "flecha", "Ya salieron:"));
+    if (f.poppedSoFar && f.poppedSoFar.length) f.poppedSoFar.forEach((ev) => { const c = node("div", "chip bad"); c.appendChild(node("b", "", ev.etiqueta)); c.appendChild(node("span", "", "p" + ev.prioridad)); salieron.appendChild(c); });
+    else salieron.appendChild(node("span", "muted", "ninguno todavía"));
+    host.appendChild(salieron);
+    host.appendChild(relato(f.nota));
+  }
+  function renderOrquestador(f, host) {
+    const grid = node("div", "dos");
+    const reco = node("div", "chip" + (f.rama === "Recomendación" ? " on" : " dim")); reco.appendChild(node("b", "", "Recomendación")); reco.appendChild(node("span", "", "vista o carrito"));
+    const fra = node("div", "chip" + (f.rama === "Fraude" ? " bad" : " dim")); fra.appendChild(node("b", "", "Fraude")); fra.appendChild(node("span", "", "compra"));
+    grid.appendChild(reco); grid.appendChild(fra); host.appendChild(grid);
+    host.appendChild(relato(f.nota));
+  }
+  function renderReco(f, host) {
+    const c = M.consultar(f.visto);
+    const titulos = { entrada: "1. Qué entra", hnsw: "2. Plaza HNSW, la más cercana", grafo: "3. Hasta 4 plazas del grafo", populares: "4. Relleno con populares", cierre: "5. Las cinco recomendaciones" };
+    host.appendChild(node("div", "k", titulos[f.etapa]));
+    if (f.etapa === "entrada") {
+      host.appendChild(chips([[String(f.visto), c.base ? "está en el índice de B" : "no estaba en B", "on"]]));
+      if (c.base) host.appendChild(chips(c.base.vector.map((v, i) => [i + ": " + (v ? v.toFixed(2) : "0"), i === 0 ? "precio" : i === 1 ? "popularidad" : i < 10 ? "categoría" : "marca", v ? "on" : "dim"])));
+      else host.appendChild(node("p", "", "Este product_id no está entre los vectores que armó la Rama B."));
+      host.appendChild(relato("hibrido recibe vistos = [" + f.visto + "]. La entrada es ese product_id."));
+    } else if (f.etapa === "hnsw") {
+      if (!c.distancias.length) host.appendChild(callout("No hay distancia que calcular", "La plaza 1 toma el primer popular distinto."));
+      else host.appendChild(tabla(["producto", "precio", "categoría", "marca", "L2", "por qué queda a esa distancia"], c.distancias.map((d, i) => ({ cells: [d.ficha.producto, d.ficha.precio, d.ficha.categoria + " · casilla " + d.ficha.cat, d.ficha.marca + " · casilla " + d.ficha.marcaCasilla, d.l2.toFixed(2), d.motivo], cls: i === 0 ? "ok" : "" }))));
+      host.appendChild(relato(c.distancias[0] ? "La primera fila es la plaza HNSW, L2 " + c.distancias[0].l2.toFixed(2) + ". " + c.distancias[0].motivo : "No hay distancia que calcular."));
+    } else if (f.etapa === "grafo") {
+      host.appendChild(dibujoConsulta(f.visto, c.vecinos.slice(0, 1), c.ajenos));
+      host.appendChild(node("p", "muted", "El número sobre la arista es el peso. El cupo del grafo es 4, ordenado de mayor peso a menor."));
+      host.appendChild(relato(c.vecinos.length ? f.visto + " tiene " + c.vecinos.length + " vecino en el grafo, con peso " + c.vecinos[0].peso + "." : f.visto + " no tiene aristas en el grafo de la Rama B. Las 4 plazas del grafo quedan vacías."));
+    } else if (f.etapa === "populares") {
+      host.appendChild(tabla(["orden de llegada", "producto", "qué hace el relleno"], c.populares.map((p, i) => { const plaza = c.salida.find((s) => s.producto === p); const que = p === f.visto ? "ya visto, se salta" : !plaza ? "el top 5 ya está lleno" : plaza.fuente === "popular" ? "entra como relleno" : "ya entró por " + plaza.fuente; return { cells: [i + 1, p, que], cls: plaza && plaza.fuente === "popular" ? "ok" : "" }; })));
+    } else {
+      host.appendChild(chips(c.salida.map((p, i) => [(i + 1) + ". " + p.producto, p.fuente === "HNSW" ? (p.detalle || p.fuente) : p.fuente, p.fuente === "HNSW" ? "on" : p.fuente === "popular" ? "dim" : ""])));
+      host.appendChild(relato("El top 5 queda así: " + c.salida.map((p, i) => (i + 1) + ". " + p.producto + " (" + p.fuente + ")").join(", ") + ". El grafo y el índice no se modifican."));
+    }
+  }
+
+  function textoRico(parent, text) {
+    const re = /`([^`]+)`/g;
+    let last = 0, m;
+    while ((m = re.exec(text))) {
+      if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+      parent.appendChild(node("code", "", m[1]));
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+  }
+  function guiasPaso() {
+    const compras = M.train.filter((e) => e.tipo === "purchase").length;
+    if (ui.paso === "orden" && ui.modo.orden === "k") return [
+      { p: "El que ordena cada bloque sigue siendo el merge sort. mezcla_k solo junta esos bloques: guarda la cabeza de cada uno en un heap mínimo y siempre saca la menor." },
+      { titulo: "En quick, con 100.000 filas, esta mezcla no se llama", texto: "ordenar_indices usa bloques de 100.000. Quick lee justo esa cantidad, así que hay un solo bloque y devuelve el merge sort de ese bloque. La mezcla de k vías entra en full, cuando hay más de 100.000 filas: cada bloque se ordena igual y el heap compara solo la primera fila de cada bloque, no el archivo entero a la vez. Con 10.000.000 de filas el heap tendría 100 cabezas." }
+    ];
+    if (ui.paso === "orden") return [{ p: "Merge sort ascendente. Cada Siguiente compara las dos cabezas, o copia lo que queda de una corrida. Abajo crece el resultado de esa mezcla; al cerrar la pasada, ese orden reemplaza al lote." }];
+    if (ui.paso === "indice" && ui.modo.indice === "grafo") return [
+      { p: "El programa hace dos construcciones, en este orden. Primero el grafo de sesión. Después el modelo: el vector de cada producto y, con esos vectores, el índice HNSW. Si hnswlib no está, el mismo índice responde con KNN exacto. La tabla de vecinos es la consulta de ese índice; la fase C la pide después." },
+      { titulo: "El peso decide el orden en la Rama C", texto: "Dos productos dejan 1 arista. Tres dejan 3. Si otra sesión repite el par, el peso suma 1. En el paso 17, candidatos_grafo ordena los vecinos por ese peso y el híbrido se queda con 4. Una arista de peso 2 sale antes que una de peso 1." }
+    ];
+    if (ui.paso === "indice" && ui.modo.indice === "vector") return [{ p: "Segunda construcción, dentro de construir_indice_productos. Cada ficha del catálogo se vuelve un vector de 14 casillas: precio, popularidad, categoría y marca. Aquí todavía no se buscan vecinos. Anterior y Siguiente recorren los productos del histórico." }];
+    if (ui.paso === "indice") return [{ p: "Tercera parte: IndiceVectorial recibe los vectores ya armados. Esta tabla es lo que devuelve la consulta, HNSW o KNN exacto. El programa la usa en la fase C y se queda con el primero. hibrido no se queda con los cinco: toma el primero y completa con cuatro del grafo de sesión." }];
+    if (ui.paso === "almacen") return [{ titulo: "disponible no viene en REES46", texto: "preparar_eventos calcula huella(42, usuario, producto) módulo 20. Si el resto es 0, la ficha nace no disponible. Si el resto es otro número, queda disponible. Una visita posterior del mismo producto no cambia ese valor: solo sube la popularidad. En estas 10 filas ningún resto es 0, así que las fichas del histórico quedan en sí." }];
+    if (ui.paso === "lookup") return [{ titulo: "La búsqueda del catálogo no es un recorrido de todas las fichas", texto: "almacen.catalogo es un diccionario con clave product_id. Esa estructura ya es la tabla hash. actualizar corre sobre el mismo Almacén que construyó la Rama B, en este orden. 1. Catálogo: si el producto no está, nace la ficha y el precio entra al B+Tree; si está, precio y disponible se quedan. En los dos casos la popularidad suma 1. 2. Matriz dispersa: interacciones de usuario y producto suma 1. Solo existen los pares que ocurrieron. 3. LRU: si la ficha ya está entre las entradas, sale de la caché y se mueve al final (CACHE). Si no está, se lee del diccionario, se inserta y, con el cupo lleno, sale la más antigua (HASH). En esta miniatura el cupo es 3 para que se vea el desalojo. En el notebook el cupo es 256." }];
+    if (ui.paso === "fraudeC") return [
+      { p: "Bloom: motivo. Miembros: confirmados y vigilados (vigía módulo 50 = 0). Puede ser colisión. Count-Min: motivo si usuario|hora llega a 8. Solo cuenta el histórico. Exacto: bloquea. La fila trae fraude_confirmado, o el dispositivo o el pago están en el conjunto." },
+      { p: "Confirmación exacta bloquea. Motivo sin confirmación: revisar. Sin motivo: permitir. La prioridad no se lee." }
+    ];
+    if (ui.paso === "reco") return [{ titulo: "Cómo se arman las 5 recomendaciones", texto: "No llega una categoría escrita en un buscador. Llega el product_id de una vista o un carrito, más lo que esa sesión ya vio. La plaza 1 es el vecino más cercano del índice, por distancia L2. Después entran hasta 4 vecinos del grafo, ordenados por peso. Si no se completa 5, se rellena con los más populares del histórico." }];
+    if (ui.paso === "cocompra" && ui.modo.cocompra !== "amp") return [{ p: "Este paso arma un grafo. Cada nodo es un producto y cada arista dice que esos dos se compraron en la misma sesión, uno después del otro. El objetivo es guardar qué se lleva junto, para sugerir el segundo cuando alguien compra el primero. En sH, 10055 a las 08:20 y 1210 a las 08:35 dejan la arista 10055 ↔ 1210. 1001, a las 09:40, es la única compra de sB y queda como nodo sin arista." }];
+    if ((ui.paso === "cocompra" || ui.paso === "cocompraC") && ui.modo.cocompra === "amp") return [{ titulo: ui.paso === "cocompra" ? "Simulación ampliada: cómo B construye pesos" : "Simulación ampliada: cómo C continúa el mismo grafo", texto: "Ejemplo pedagógico adicional. Cada avance procesa una compra y consulta únicamente las compras previas de su misma sesión. El borde resaltado señala el producto nuevo y las aristas que toca. Las posiciones no cambian entre pasos." }];
+    if (ui.paso === "cocompraC") return [{ titulo: "Resultado real de esta miniatura", texto: "Las dos compras permitidas del 40 % pertenecen a sesiones que aún no tenían otra compra. Por eso agregan o conservan nodos, pero no crean aristas. Es correcto, y no deja ver cómo sube un peso. El ejemplo ampliado sí lo muestra." }];
+    if (ui.paso === "panel") return [
+      { titulo: "Este paso es solo Panel y alertas", texto: "La tabla es la traza del 40 %: lookup, rama y resultado de cada evento del stream. Buscar, precios, recomendar, simular y el grafo son otras pestañas del dashboard y entran por otros pasos." },
+      { titulo: "Cierre del recorrido del 40 %", texto: "4 eventos de stream. La Estándar queda en revisar: el Bloom de 16 bits reconoce pay-13-1 y el conjunto exacto no. La Programada se permite. Ninguna se bloquea, así que las dos siguen a co-compra." }
+    ];
+    if (ui.paso === "fraude") return [{ p: "En el dibujo, h0 a h4 son cinco hashes de la misma clave usuario|hora. Cada hash se divide entre 16 y el resto elige la columna. Para 11|08:00 esos restos son 11, 4, 4, 0 y 15. La estimación es el mínimo de esas cinco casillas. 12|09:00 cae en 15, 11, 14, 11 y 9. Vigilados: ninguno en estas " + compras + " compras." }];
+    return [];
+  }
+  function pasoActual() { return defs[ui.paso]; }
+  function framesDe() { return pasoActual().frames(); }
+  function pintarFases() {
+    const box = $("fases"); box.replaceChildren();
+    Object.keys(fases).forEach((id) => { const b = node("button", ui.fase === id ? "on" : "", fases[id].titulo); b.type = "button"; b.addEventListener("click", () => { ui.fase = id; ui.paso = fases[id].pasos[0]; ui.frame = 0; pintar(); }); box.appendChild(b); });
+    $("lede-fase").textContent = fases[ui.fase].lede;
+  }
+  function pintarPasos() {
+    const box = $("pasos"); box.replaceChildren();
+    fases[ui.fase].pasos.forEach((id) => { const b = node("button", ui.paso === id ? "on" : "", defs[id].label); b.type = "button"; b.addEventListener("click", () => { ui.paso = id; ui.frame = inicial(); pintar(); }); box.appendChild(b); });
+  }
+  function inicial() { const d = defs[ui.paso]; return d.initial ? Math.max(0, d.initial()) : 0; }
+  function pintarLeccion() {
+    const d = pasoActual(), host = $("leccion"), t = TEORIA[d.teoria];
+    host.replaceChildren();
+    host.appendChild(node("h2", "", d.label + " · " + d.title));
+    host.appendChild(node("p", "k", "1. El algoritmo, en general"));
+    const algo = node("p", ""); textoRico(algo, d.generic); host.appendChild(algo);
+    const c = node("div", "callout"); c.appendChild(node("strong", "", "Fundamento teórico"));
+    ["Objetivo", "Mecanismo", "Invariante / garantía", "Complejidad"].forEach((nombre, i) => { const p = node("p", ""); p.appendChild(node("b", "", nombre + ": ")); p.appendChild(document.createTextNode(t[i])); c.appendChild(p); });
+    host.appendChild(c);
+    const q = node("div", "ok"); q.appendChild(node("strong", "", "2. Antes de simular: qué consume este paso, y de dónde")); const cuerpo = node("p", ""); textoRico(cuerpo, d.consume); q.appendChild(cuerpo); host.appendChild(q);
+    guiasPaso().forEach((g) => {
+      if (g.titulo) host.appendChild(callout(g.titulo, g.texto));
+      else { const p = node("p", ""); p.textContent = g.p; host.appendChild(p); }
+    });
+    host.appendChild(node("p", "k", "3. Simulador"));
+  }
+  function pintarExtra() {
+    const extra = $("extra"); extra.replaceChildren();
+    const addModo = (clave, opciones) => { const row = node("div", "pills"); opciones.forEach((op) => { const b = node("button", ui.modo[clave] === op.id ? "on" : "", op.label); b.type = "button"; b.addEventListener("click", () => { ui.modo[clave] = op.id; ui.frame = inicial(); pintarLeccion(); pintarFrame(); pintarExtra(); pintarControles(); }); row.appendChild(b); }); extra.appendChild(row); };
+    if (ui.paso === "orden") addModo("orden", [{ id: "merge", label: "Merge sort, comparación por comparación" }, { id: "k", label: "Mezcla de k vías, bloques de 4" }]);
+    if (ui.paso === "indice") addModo("indice", [{ id: "grafo", label: "1 · Grafo de sesión" }, { id: "vector", label: "2 · Vector" }, { id: "hnsw", label: "3 · Vecinos HNSW" }]);
+    if (ui.paso === "cocompra" || ui.paso === "cocompraC") addModo("cocompra", [{ id: "mini", label: "Miniatura real" }, { id: "amp", label: "Ejemplo ampliado con pesos" }]);
+    if (ui.paso === "reco") addModo("reco", [{ id: "1802", label: "1802 · ya está en B" }, { id: String(M.stream.find((e) => e.tipo === "view" || e.tipo === "cart").producto), label: "Producto de una vista o carrito del stream" }]);
+    if (ui.paso === "trie") {
+      const row = node("div", "pills"), lab = node("label", "campo", "Probar un prefijo"); const input = document.createElement("input"); input.type = "text"; input.value = "phone"; lab.appendChild(input); row.appendChild(lab); const out = node("div", "relato"); row.appendChild(out); extra.appendChild(row);
+      const pintar = () => { const ids = completar(M.trie.root, input.value, 5); out.textContent = input.value.trim() ? "BFS devuelve " + (ids.join(", ") || "ningún producto") + "." : "Escribe un prefijo, por ejemplo phone, samsung o shoes."; };
+      input.addEventListener("input", pintar); pintar();
+    }
+    if (ui.paso === "btree") {
+      const row = node("div", "pills");
+      const min = document.createElement("input"), max = document.createElement("input");
+      min.type = "number"; max.type = "number"; min.value = "40"; max.value = "100";
+      const a = node("label", "campo", "Mínimo"), b = node("label", "campo", "Máximo"); a.appendChild(min); b.appendChild(max);
+      const out = node("div", "relato"); row.appendChild(a); row.appendChild(b); extra.appendChild(row); extra.appendChild(out);
+      const pintar = () => { const hojas = M.tree[M.tree.length - 1].hojas; const ids = rangoPrecios(hojas, Number(min.value), Number(max.value)); out.textContent = "Hojas enlazadas, de " + min.value + " a " + max.value + ": " + (ids.join(" · ") || "ningún precio."); };
+      min.addEventListener("input", pintar); max.addEventListener("input", pintar); pintar();
+    }
+  }
+  function pintarControles() {
+    const frames = framesDe(), box = $("controles"); box.replaceChildren();
+    const prev = node("button", "", "Anterior"), next = node("button", "primary", "Siguiente"), reset = node("button", "", "Reiniciar");
+    prev.type = next.type = reset.type = "button";
+    prev.disabled = ui.frame <= 0; next.disabled = ui.frame >= frames.length - 1; reset.disabled = ui.frame === 0;
+    prev.addEventListener("click", () => mover(-1)); next.addEventListener("click", () => mover(1)); reset.addEventListener("click", () => { ui.frame = 0; pintarFrame(); pintarControles(); });
+    box.appendChild(prev); box.appendChild(next);
+    if (ui.paso === "orden" && ui.modo.orden === "merge") {
+      const fin = node("button", "", "Fin de pasada");
+      fin.type = "button";
+      fin.disabled = ui.frame >= frames.length - 1;
+      fin.addEventListener("click", () => {
+        const fs = framesDe();
+        let destino = fs.length - 1;
+        for (let k = ui.frame + 1; k < fs.length; k++) { if (fs[k].desde < 0) { destino = k; break; } }
+        ui.frame = destino; pintarFrame(); pintarControles();
+      });
+      box.appendChild(fin);
+    }
+    box.appendChild(reset); box.appendChild(node("span", "muted", (ui.frame + 1) + " / " + frames.length));
+  }
+  function mover(delta) { const frames = framesDe(); ui.frame = Math.max(0, Math.min(frames.length - 1, ui.frame + delta)); pintarFrame(); pintarControles(); }
+  function pintarFrame() { const host = $("escenario"); host.replaceChildren(); const frames = framesDe(); pasoActual().render(frames[ui.frame], host); }
+  function pintar() { pintarFases(); pintarPasos(); pintarLeccion(); pintarExtra(); pintarControles(); pintarFrame(); }
+  document.addEventListener("keydown", (ev) => { if (ev.target.matches("input")) return; if (ev.key === "ArrowRight") mover(1); if (ev.key === "ArrowLeft") mover(-1); });
+  pintar();
+}
+  </script>
+</body>
+</html>
