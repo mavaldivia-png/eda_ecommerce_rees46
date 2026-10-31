@@ -97,7 +97,7 @@
 <body>
   <header class="top">
     <div class="wrap top-inner">
-      <div class="brand">Motor REES46<span>Simulador de las fases A, B y C</span></div>
+      <div class="brand">Motor REES46<span>Basado en el canvas Fases ABC Escalabilidad</span></div>
       <nav>
         <a href="#simulador">Simulador</a>
         <a href="#corte">Por qué 60/40</a>
@@ -107,8 +107,8 @@
   </header>
   <main class="wrap">
     <h1>Estudiar el pipeline, paso a paso</h1>
-    <p class="lede">Misma miniatura del canvas: 13 filas crudas, 10 limpias, corte 6 y 4. Cada paso corre el algoritmo y se avanza con Anterior, Siguiente o las flechas del teclado. Las flechas no actúan mientras se escribe en un campo.</p>
-    <p class="source">Fuente: canvas Fases ABC Escalabilidad y <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>, semilla 42.</p>
+    <p class="lede">Esta página está basada en el canvas Fases ABC Escalabilidad. Usa la misma miniatura: 13 filas crudas, 10 limpias, corte 6 y 4, y las mismas simulaciones, incluida la del índice HNSW en tres planos. Cada paso corre el algoritmo y se avanza con Anterior, Siguiente o las flechas del teclado. Las flechas no actúan mientras se escribe en un campo.</p>
+    <p class="source">Basado en el canvas Fases ABC Escalabilidad. Los parámetros del programa que se ejecuta salen de <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>, semilla 42.</p>
 
     <section id="simulador">
       <div class="pills" id="fases"></div>
@@ -154,7 +154,7 @@
         </tbody>
       </table>
     </section>
-    <footer>Miniatura de estudio. El programa que se ejecuta sigue siendo <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>.</footer>
+    <footer>Basado en el canvas Fases ABC Escalabilidad. El programa que se ejecuta sigue siendo <code>Proyecto_EDA_Motor_Ecommerce_REES46_v2.ipynb</code>.</footer>
   </main>
   <script>
 "use strict";
@@ -643,7 +643,7 @@ if (typeof document === "undefined") {
     corte: { fase: "A", label: "5 Corte", title: "Corte temporal 60/40", teoria: "5 Corte", generic: "Con el lote ya limpio, ordenado y sintetizado, se corta por posición: el primer 60 % alimenta la Rama B y el 40 % restante se reproduce como stream de la Rama C. El corte cae sobre un arreglo ya ordenado por tiempo. Sirve para construir el motor solo con el pasado y puntuar después lo que ocurre más tarde. La razón completa está en la sección Por qué 60/40.", consume: "Recibe las " + M.enriched.length + " filas completas, ya limpias, ordenadas y sintetizadas. El corte cae en " + M.corte + ". Usa `cortes_temporales(n)`: `train = max(1, int(n × 0.60))`.", frames: () => [0, 1, 2].map((fase) => ({ fase, nota: fase === 0 ? M.enriched.length + " eventos ordenados por tiempo. El corte todavía no existe." : fase === 1 ? "Posiciones 0 a " + (M.corte - 1) + " son el histórico: Rama B." : "Posiciones " + M.corte + " a " + (M.enriched.length - 1) + " son el stream: Rama C." })), render: (f, host) => { host.appendChild(chips(M.enriched.map((ev, i) => { const enB = f.fase >= 1 && i < M.corte, enC = f.fase >= 2 && i >= M.corte; return [ev.time, "p" + ev.pos + " · " + ev.etiqueta, enB ? "on" : enC ? "bad" : "", enB ? "Rama B" : enC ? "Rama C" : ""]; }))); host.appendChild(relato(f.nota)); if (f.fase === 2) host.appendChild(callout("Misma hora, dos lados del corte", "09:40 queda en la posición " + (M.corte - 1) + " (Rama B) y en la posición " + M.corte + " (Rama C). El índice de archivo es el que decide de qué lado queda cada una.")); } },
     almacen: { fase: "B", label: "6 Almacén", title: "Hash, matriz dispersa y LRU", teoria: "6 Almacén", generic: "Cada evento del histórico llama a Almacen.actualizar en este orden. Primero el catálogo, un diccionario por product_id: encontrar la ficha es O(1) esperado, porque el diccionario es la tabla hash. Si el producto no existe, nace la ficha; si existe, solo sube la popularidad. Segundo, la matriz dispersa suma 1 en usuario y producto. Tercero, el LRU recuerda las últimas fichas consultadas y, cuando se llena, desaloja la menos recientemente usada.", consume: "Recibe los " + M.train.length + " eventos del histórico (60 %), en su orden temporal. Usa `Almacen.actualizar`, llamado desde `actualizar_almacen`. En el notebook el cupo del LRU es 256; aquí es 3.", frames: () => M.almacen.slice(0, M.train.length + 1), render: renderAlmacen },
     btree: { fase: "B", label: "7 B+Tree", title: "Índice ordenado de precios (vista ampliada)", teoria: "7 B+Tree", generic: "Un B+Tree guarda las claves ordenadas en hojas enlazadas entre sí. Cuando una hoja excede su orden, se divide en dos y un separador sube al nivel de arriba. Si la clave que se inserta ya existe, no se crea una clave nueva: el valor se agrega a la lista de esa clave.", consume: "En el flujo real de este recorrido, el B+Tree recibe solo 6 inserciones, un precio por producto nuevo del histórico. Esta vista amplía esa misma estructura con 15 inserciones: 13 precios distintos y 2 repetidos en productos distintos, para que las divisiones y el precio repetido se vean. Notebook: `ArbolBPlus.insertar`, orden real 32; aquí, orden 3.", frames: () => [{ precio: 0, producto: "", dup: false, division: false, hojas: [{ claves: [], valores: [] }], arbol: { hoja: true, claves: [], valores: [] }, nota: "El árbol empieza como una sola hoja vacía. Todavía no hay ramas: la primera clave nace en esa hoja." }].concat(M.tree), render: renderArbol },
-    indice: { fase: "B", label: "8 Índice", title: "Grafo de sesión y después el modelo", teoria: "8 Índice", generic: "Este paso construye dos cosas, en este orden. Primero el grafo de sesión: productos distintos de la misma visita quedan unidos, sin mirar si se parecen. Después el modelo: cada ficha se vuelve un vector de precio, popularidad, categoría y marca, y esos vectores entran a un índice HNSW. Si hnswlib no está, el mismo índice responde con KNN exacto. La tabla de vecinos es la consulta de ese índice; la fase C la pide más adelante y se queda con uno.", consume: "Recibe el histórico ya cargado en el almacén, " + M.train.length + " eventos. Primero `construir_grafo_sesion`. Después `construir_indice_productos`, que llama a `vector_producto` y a `IndiceVectorial`.", frames: () => ui.modo.indice === "vector" ? M.fichas.map((ficha) => ({ ficha: ficha, modo: "vector" })) : ui.modo.indice === "hnsw" ? M.fichas.map((ficha) => ({ ficha: ficha, modo: "hnsw" })) : M.sesion.map((f) => Object.assign({ grupo: "hist" }, f)).concat(M.regla.map((f) => Object.assign({ grupo: "regla" }, f))), render: renderIndice },
+    indice: { fase: "B", label: "8 Índice", title: "Grafo de sesión, vector e inserción HNSW", teoria: "8 Índice", generic: "Este paso construye dos cosas, en este orden. Primero el grafo de sesión: productos distintos de la misma visita quedan unidos, sin mirar si se parecen. Después el modelo: cada ficha se vuelve un vector de precio, popularidad, categoría y marca, y esos vectores entran a un índice HNSW. Si hnswlib no está, el mismo índice responde con KNN exacto. La tabla de vecinos es la consulta de ese índice; la fase C la pide más adelante y se queda con uno. La vista 4 recorre esa inserción en un mapa de tres planos, la misma simulación del canvas Fases ABC Escalabilidad.", consume: "Recibe el histórico ya cargado en el almacén, " + M.train.length + " eventos. Primero `construir_grafo_sesion`. Después `construir_indice_productos`, que llama a `vector_producto` y a `IndiceVectorial`. La vista 4 simula la construcción por capas con doce productos propios (9001–9012): en el notebook M = 16, ef_construction = 80 y ef = 40 sobre hasta 20.000 productos; aquí M = 3, ef_construction = 5 y ef = 4 sobre 12. Cada inserción arranca en el nodo de llegada y solo sigue aristas ya existentes. La lista no pasa de ef_construction.", frames: () => ui.modo.indice === "vector" ? M.fichas.map((ficha) => ({ ficha: ficha, modo: "vector" })) : ui.modo.indice === "hnsw" ? M.fichas.map((ficha) => ({ ficha: ficha, modo: "hnsw" })) : ui.modo.indice === "insercion" ? hnswListo().frames : ui.modo.indice === "consulta" ? hnswListo().consultas : M.sesion.map((f) => Object.assign({ grupo: "hist" }, f)).concat(M.regla.map((f) => Object.assign({ grupo: "regla" }, f))), render: renderIndice },
     fraude: { fase: "B", label: "9 Fraude", title: "Bloom + Count-Min + conjunto exacto", teoria: "9 Fraude", generic: "construir_fraude recorre solo las compras del histórico. Cada compra suma 1 en el Count-Min, en la clave usuario|hora. Esa clave pasa por cinco hashes, h0 a h4. Cada hash se divide entre el ancho de la tabla y el resto elige la casilla de esa fila. En el dibujo el ancho es 16, así que el resto cae entre 0 y 15. Si la fila trae fraude_confirmado, el dispositivo y el pago entran al conjunto exacto. Si no, y huella(\"vigia\", dispositivo) módulo 50 da 0, el dispositivo queda vigilado: irá al Bloom y no al conjunto. Al cerrar el recorrido, el Bloom se llena con esa unión. Vista y carrito no escriben aquí. Permitir, revisar o bloquear corre después, en la Rama C.", consume: "Recibe solo las compras del histórico (" + M.train.filter(function (e) { return e.tipo === "purchase"; }).length + " de " + M.train.length + " eventos). Usa `construir_fraude`. El dibujo achica el Count-Min a 16 columnas y el Bloom a 16 bits; el notebook usa 4.096 columnas, y un Bloom de 9.816 bits con 7 hashes.", frames: () => M.fraudeB, render: renderFraudeB },
     cocompra: { fase: "B", label: "10 Co-compra", title: "Grafo de productos comprados juntos", teoria: "10 Co-compra", generic: "Este paso arma un grafo de co-compra. Cada nodo es un producto. Una arista une dos productos comprados en la misma sesión, uno después del otro, y el objetivo es sugerir el segundo cuando alguien compra el primero. En esta miniatura, sH deja 10055 ↔ 1210. sB solo tiene 1001, así que ese nodo queda sin arista. Vista y carrito no entran. La vista ampliada muestra cómo el peso llega a 2.", consume: "Recibe las compras del histórico, ordenadas por tiempo dentro de cada sesión. Usa `construir_cocompra`.", frames: () => ui.modo.cocompra === "amp" ? M.amp.filter((f) => f.ev.fase === "B") : M.cocompra.filter((f) => f.ev.fase === "B"), render: renderCocompra },
     trie: { fase: "B", label: "11 Trie", title: "Autocompletado por prefijo", teoria: "11 Trie", generic: "Cada producto deja dos frases en el trie: categoría marca, y marca categoría. Una búsqueda por prefijo recorre el trie letra por letra y junta, con un BFS, hasta 5 product_id de las ramas que calzan.", consume: "Recibe el catálogo ya cerrado del Almacén (" + new Set(M.train.map(function (e) { return e.producto; })).size + " productos distintos del histórico). Usa `Trie.insertar`, una vez por producto.", frames: () => M.trie.frames, render: (f, host) => { if (f.terminales.length) host.appendChild(tabla(["Texto en el terminal", "product_id"], f.terminales.map((t) => ({ cells: [t[0], t[1].join(", ")] })))); host.appendChild(relato(f.nota)); } },
@@ -984,7 +984,346 @@ if (typeof document === "undefined") {
       host.appendChild(bien("Resultado de esta vista ampliada", hojas + " hojas, " + new Set(TREE_INSERTS.map((t) => t[0])).size + " precios distintos, 2 de ellos con más de un product_id."));
     }
   }
+  function hnswListo() {
+    if (hnswListo.cache) return hnswListo.cache;
+    const Mvec = 3, efc = 5, efs = 4;
+    const catSlot = { phone: 2, laptop: 3, audio: 4, shoes: 5, case: 6, watch: 7 };
+    const brandSlot = { apple: 10, samsung: 11, sony: 12, nike: 13 };
+    const catalogo = [
+      { letra: "A", producto: 9001, precio: 999, categoria: "phone", marca: "apple", popularidad: 40, nivel: 2 },
+      { letra: "B", producto: 9002, precio: 799, categoria: "phone", marca: "samsung", popularidad: 35, nivel: 0 },
+      { letra: "C", producto: 9003, precio: 1099, categoria: "phone", marca: "apple", popularidad: 22, nivel: 1 },
+      { letra: "D", producto: 9004, precio: 1899, categoria: "laptop", marca: "apple", popularidad: 18, nivel: 0 },
+      { letra: "E", producto: 9005, precio: 1299, categoria: "laptop", marca: "samsung", popularidad: 12, nivel: 1 },
+      { letra: "F", producto: 9006, precio: 199, categoria: "audio", marca: "sony", popularidad: 50, nivel: 0 },
+      { letra: "G", producto: 9007, precio: 249, categoria: "audio", marca: "apple", popularidad: 28, nivel: 2 },
+      { letra: "H", producto: 9008, precio: 89, categoria: "shoes", marca: "nike", popularidad: 60, nivel: 0 },
+      { letra: "I", producto: 9009, precio: 129, categoria: "shoes", marca: "nike", popularidad: 33, nivel: 1 },
+      { letra: "J", producto: 9010, precio: 15, categoria: "case", marca: "samsung", popularidad: 70, nivel: 0 },
+      { letra: "K", producto: 9011, precio: 25, categoria: "case", marca: "apple", popularidad: 65, nivel: 0 },
+      { letra: "L", producto: 9012, precio: 399, categoria: "watch", marca: "apple", popularidad: 15, nivel: 1 }
+    ];
+    const precioMax = Math.log1p(Math.max.apply(null, catalogo.map((p) => p.precio)));
+    const popMax = Math.log1p(Math.max.apply(null, catalogo.map((p) => p.popularidad)));
+    const nodos = catalogo.map((p) => {
+      const vector = Array(14).fill(0);
+      vector[0] = Number((Math.log1p(p.precio) / precioMax).toFixed(3));
+      vector[1] = Number((Math.log1p(p.popularidad) / popMax).toFixed(3));
+      vector[catSlot[p.categoria]] = 1;
+      vector[brandSlot[p.marca]] = 1;
+      return Object.assign({}, p, { vector: vector });
+    });
+    const porId = {};
+    nodos.forEach((n) => { porId[n.producto] = n; });
+    function dist(a, b) { return Math.sqrt(a.reduce((suma, valor, i) => suma + (valor - b[i]) * (valor - b[i]), 0)); }
+    function letra(producto) { return porId[producto] ? porId[producto].letra : "?"; }
+    function vecinosDe(aristas, producto) {
+      const salida = [];
+      aristas.forEach((ar) => {
+        if (ar.a === producto) salida.push(ar.b);
+        else if (ar.b === producto) salida.push(ar.a);
+      });
+      return salida;
+    }
+    function descenderCapa(vector, entrada, aristas, evitar) {
+      function distDe(producto) { return dist(vector, porId[producto].vector); }
+      let actual = entrada;
+      const saltos = [];
+      const visitados = {};
+      visitados[actual] = true;
+      if (evitar != null) visitados[evitar] = true;
+      while (true) {
+        const siguientes = vecinosDe(aristas, actual).filter((v) => !visitados[v]);
+        if (!siguientes.length) break;
+        const mejor = siguientes.map((producto) => ({ producto: producto, dist: distDe(producto) })).sort((a, b) => a.dist - b.dist)[0];
+        visitados[mejor.producto] = true;
+        if (mejor.dist < distDe(actual)) {
+          saltos.push({ desde: actual, hacia: mejor.producto });
+          actual = mejor.producto;
+        } else break;
+      }
+      return { saltos: saltos, llegada: actual };
+    }
+    function buscarCapa(vector, entrada, ef, aristas, presentes, evitar) {
+      function distDe(producto) { return dist(vector, porId[producto].vector); }
+      const visitados = {};
+      if (evitar != null) visitados[evitar] = true;
+      const orden = [];
+      let lista = [];
+      let cola = [];
+      function peor() { return lista.reduce((a, b) => (a.dist > b.dist ? a : b)); }
+      function agregar(producto) {
+        if (visitados[producto]) return;
+        visitados[producto] = true;
+        orden.push(producto);
+        const d = distDe(producto);
+        if (lista.length < ef || d < peor().dist) {
+          lista = lista.concat([{ producto: producto, dist: d }]);
+          cola = cola.concat([{ producto: producto, dist: d }]);
+          if (lista.length > ef) {
+            const sale = peor();
+            lista = lista.filter((item) => item.producto !== sale.producto);
+          }
+        }
+      }
+      agregar(entrada);
+      while (cola.length) {
+        cola.sort((a, b) => a.dist - b.dist);
+        const actual = cola.shift();
+        if (!lista.some((item) => item.producto === actual.producto)) continue;
+        if (actual.dist > peor().dist) break;
+        vecinosDe(aristas, actual.producto).forEach(agregar);
+      }
+      lista.sort((a, b) => a.dist - b.dist);
+      const enLista = {};
+      lista.forEach((item) => { enLista[item.producto] = true; });
+      const elegidos = {};
+      lista.slice(0, Mvec).forEach((item) => { elegidos[item.producto] = true; });
+      const medidos = orden.map((producto) => ({
+        producto: producto,
+        dist: distDe(producto),
+        explorado: !!enLista[producto],
+        elegido: !!elegidos[producto]
+      })).sort((a, b) => a.dist - b.dist);
+      return { medidos: medidos, sinMedir: presentes.filter((producto) => !visitados[producto]), llegada: lista.length ? lista[0].producto : entrada };
+    }
+    const frames = [];
+    const aristasAcum = { 0: [], 1: [], 2: [] };
+    const insertados = [];
+    nodos.forEach((nodo, k) => {
+      let entryProducto = insertados.length ? insertados[0].producto : nodo.producto;
+      let entryNivel = insertados.length ? Math.max.apply(null, insertados.map((n) => n.nivel)) : nodo.nivel;
+      if (insertados.length) entryProducto = insertados.filter((n) => n.nivel === entryNivel)[0].producto;
+      const descenso = [];
+      const candidatos = {};
+      const sinMedir = {};
+      const nuevasPorCapa = {};
+      if (k > 0) {
+        let actual = entryProducto;
+        for (let capa = entryNivel; capa > nodo.nivel; capa -= 1) {
+          const bajada = descenderCapa(nodo.vector, actual, aristasAcum[capa]);
+          descenso.push({ capa: capa, desde: actual, hacia: bajada.llegada, saltos: bajada.saltos });
+          actual = bajada.llegada;
+        }
+        for (let capa = Math.min(entryNivel, nodo.nivel); capa >= 0; capa -= 1) {
+          const presentesAhora = insertados.filter((n) => n.nivel >= capa).map((n) => n.producto);
+          const busqueda = buscarCapa(nodo.vector, actual, efc, aristasAcum[capa], presentesAhora);
+          candidatos[capa] = busqueda.medidos;
+          sinMedir[capa] = busqueda.sinMedir;
+          nuevasPorCapa[capa] = busqueda.medidos.filter((c) => c.elegido).map((e) => ({ a: nodo.producto, b: e.producto, nueva: true }));
+          actual = busqueda.llegada;
+        }
+      }
+      [0, 1, 2].forEach((capa) => {
+        aristasAcum[capa] = aristasAcum[capa].map((ar) => ({ a: ar.a, b: ar.b, nueva: false }));
+        if (nuevasPorCapa[capa]) aristasAcum[capa] = aristasAcum[capa].concat(nuevasPorCapa[capa]);
+      });
+      insertados.push(nodo);
+      const presentes = {
+        0: insertados.map((n) => n.producto),
+        1: insertados.filter((n) => n.nivel >= 1).map((n) => n.producto),
+        2: insertados.filter((n) => n.nivel >= 2).map((n) => n.producto)
+      };
+      const nota = k === 0
+        ? nodo.letra + " (producto " + nodo.producto + ") es el primer nodo del índice: no hay nadie más con quien compararlo. Se le asigna el nivel " + nodo.nivel + " y queda como punto de entrada."
+        : nodo.letra + " (producto " + nodo.producto + ", " + nodo.categoria + " " + nodo.marca + ", precio " + nodo.precio + ") entra con nivel " + nodo.nivel + ". Punto de entrada: " + letra(entryProducto) + ", en la capa " + entryNivel + "." +
+          (descenso.length ? " Baja sin crear aristas por " + (descenso.length > 1 ? "las capas " : "la capa ") + descenso.map((d) => d.capa).join(", ") + ", siguiendo la arista hacia el vecino más cercano." : "") +
+          " Desde la capa " + Math.min(entryNivel, nodo.nivel) + " arranca en el nodo de llegada y solo sigue aristas ya existentes. La lista no pasa de " + efc + " (ef_construction), el mismo papel que los 80 del notebook, y conecta con los " + Mvec + " mejores de esa lista (M).";
+      frames.push({
+        paso: k + 1,
+        total: nodos.length,
+        nodo: nodo,
+        presentes: {
+          0: presentes[0].slice(),
+          1: presentes[1].slice(),
+          2: presentes[2].slice()
+        },
+        aristas: { 0: aristasAcum[0].slice(), 1: aristasAcum[1].slice(), 2: aristasAcum[2].slice() },
+        descenso: descenso.slice(),
+        candidatos: candidatos,
+        sinMedir: sinMedir,
+        nota: nota
+      });
+    });
+    const ultimo = frames[frames.length - 1];
+    const entryFinal = nodos.filter((n) => n.nivel === 2)[0].producto;
+    frames.push({
+      paso: ultimo.paso,
+      total: ultimo.total,
+      nodo: null,
+      presentes: ultimo.presentes,
+      aristas: {
+        0: ultimo.aristas[0].map((a) => ({ a: a.a, b: a.b, nueva: false })),
+        1: ultimo.aristas[1].map((a) => ({ a: a.a, b: a.b, nueva: false })),
+        2: ultimo.aristas[2].map((a) => ({ a: a.a, b: a.b, nueva: false }))
+      },
+      descenso: [],
+      candidatos: {},
+      sinMedir: {},
+      nota: "Grafo terminado: " + ultimo.presentes[2].length + " nodos en la capa 2, " + ultimo.presentes[1].length + " en la capa 1 y los " + ultimo.presentes[0].length + " en la capa 0 (todos). Cada nodo nuevo quedó con a lo sumo " + Mvec + " aristas por capa (M). El punto de entrada es " + letra(entryFinal) + ": nadie más alcanzó su nivel."
+    });
+    const aristasFinal = frames[frames.length - 1].aristas;
+    const consultas = nodos.map((q) => {
+      const descenso = [];
+      let actual = entryFinal === q.producto
+        ? vecinosDe(aristasFinal[2], q.producto).map((producto) => ({ producto: producto, dist: dist(q.vector, porId[producto].vector) })).sort((a, b) => a.dist - b.dist)[0].producto
+        : entryFinal;
+      for (let capa = 2; capa > 0; capa -= 1) {
+        const bajada = descenderCapa(q.vector, actual, aristasFinal[capa], q.producto);
+        descenso.push({ capa: capa, desde: actual, hacia: bajada.llegada, saltos: bajada.saltos });
+        actual = bajada.llegada;
+      }
+      const presentes0 = nodos.filter((n) => n.producto !== q.producto).map((n) => n.producto);
+      const busqueda = buscarCapa(q.vector, actual, efs, aristasFinal[0], presentes0, q.producto);
+      const resultado = busqueda.medidos.filter((c) => c.elegido).map((c) => c.producto);
+      return {
+        consulta: q,
+        descenso: descenso,
+        candidatos: busqueda.medidos,
+        sinMedir: busqueda.sinMedir,
+        resultado: resultado,
+        nota: "Consulta de " + q.letra + " (producto " + q.producto + "). Entra por la capa 2 en " + letra(entryFinal) + " y baja por aristas hasta la capa 0. Ahí la lista no pasa de ef = " + efs + ". Devuelve los " + resultado.length + " más cercanos de esa lista: " + resultado.map(letra).join(", ") + "."
+      };
+    });
+    hnswListo.cache = { nodos: nodos, frames: frames, consultas: consultas, aristas: aristasFinal, letra: letra, Mvec: Mvec, efc: efc, efs: efs };
+    return hnswListo.cache;
+  }
+  function mapaCapasHnsw(opts) {
+    const plano = {
+      9001: [0.22, 0.16], 9002: [0.42, 0.12], 9003: [0.32, 0.32], 9004: [0.78, 0.14],
+      9005: [0.92, 0.32], 9006: [0.08, 0.50], 9007: [0.22, 0.64], 9008: [0.14, 0.86],
+      9009: [0.34, 0.78], 9010: [0.60, 0.70], 9011: [0.80, 0.88], 9012: [0.56, 0.46]
+    };
+    const span = 500, shear = 50, depth = 108, x0 = 40, lip = 8;
+    const base = { 2: 28, 1: 196, 0: 364 };
+    const capas = [2, 1, 0];
+    function punto(u, v, capa) { return { x: x0 + u * span + v * shear, y: base[capa] + v * depth }; }
+    function xy(producto, capa) { const p = plano[producto]; return punto(p[0], p[1], capa); }
+    const fig = svg("svg", { viewBox: "0 0 660 500", class: "grafo", role: "img", "aria-label": "Mapa HNSW: tres planos, uno por capa, con los vecinos de cada nodo" });
+    capas.forEach((capa) => {
+      const fondo = [punto(0, 0, capa), punto(1, 0, capa), punto(1, 1, capa), punto(0, 1, capa)];
+      const frente = punto(0, 1, capa), frenteDer = punto(1, 1, capa), etiqueta = punto(0, 0, capa);
+      fig.appendChild(svg("polygon", { points: fondo.map((p) => p.x + "," + p.y).join(" "), fill: "#f4f1ea", stroke: "#e2dacd" }));
+      fig.appendChild(svg("polygon", { points: [frente, frenteDer, { x: frenteDer.x, y: frenteDer.y + lip }, { x: frente.x, y: frente.y + lip }].map((p) => p.x + "," + p.y).join(" "), fill: "#e7e0d4", stroke: "#e2dacd" }));
+      fig.appendChild(svg("text", { x: etiqueta.x + 8, y: etiqueta.y - 8, fill: "#5d6876", "font-size": 11 }, "capa " + capa));
+    });
+    hnswListo().nodos.forEach((nodo) => {
+      const niveles = capas.filter((c) => opts.presentes[c] && opts.presentes[c].indexOf(nodo.producto) >= 0);
+      for (let i = 0; i < niveles.length - 1; i += 1) {
+        const arriba = xy(nodo.producto, niveles[i]), abajo = xy(nodo.producto, niveles[i + 1]);
+        fig.appendChild(svg("line", { x1: arriba.x, y1: arriba.y, x2: abajo.x, y2: abajo.y, stroke: "#b7ad9e", "stroke-dasharray": "2 3" }));
+      }
+    });
+    capas.forEach((capa) => {
+      (opts.aristas[capa] || []).forEach((ar) => {
+        const a = xy(ar.a, capa), b = xy(ar.b, capa);
+        fig.appendChild(svg("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: ar.nueva ? "#1e4d6b" : "#1b2430", "stroke-width": ar.nueva ? 2.5 : 1.3 }));
+      });
+    });
+    (opts.descenso || []).forEach((d) => {
+      const destino = xy(d.hacia, d.capa);
+      const abajo = xy(d.hacia, d.capa - 1);
+      (d.saltos || []).forEach((salto) => {
+        const origen = xy(salto.desde, d.capa);
+        const fin = xy(salto.hacia, d.capa);
+        fig.appendChild(svg("line", { x1: origen.x, y1: origen.y, x2: fin.x, y2: fin.y, stroke: "#1e4d6b", "stroke-width": 4.5, "stroke-linecap": "round" }));
+      });
+      fig.appendChild(svg("line", { x1: destino.x, y1: destino.y, x2: abajo.x, y2: abajo.y, stroke: "#1e4d6b", "stroke-dasharray": "6 4", "stroke-width": 2 }));
+    });
+    capas.forEach((capa) => {
+      (opts.presentes[capa] || []).forEach((producto) => {
+        const activo = producto === opts.destacado || producto === opts.consulta;
+        const p = xy(producto, capa);
+        const g = svg("g");
+        g.appendChild(svg("circle", { cx: p.x, cy: p.y, r: 12, fill: activo ? "#e7f0f6" : "#fffcf8", stroke: activo ? "#1e4d6b" : "#1b2430", "stroke-width": activo ? 2.5 : 1.2 }));
+        g.appendChild(svg("text", { x: p.x, y: p.y + 4, "text-anchor": "middle", fill: "#1b2430", "font-size": 12, "font-weight": activo ? 700 : 500 }, hnswListo().letra(producto)));
+        fig.appendChild(g);
+      });
+    });
+    return fig;
+  }
+  function tablasCandidatos(host, candidatos, sinMedir, letra, titulo, corte) {
+    [2, 1, 0].forEach((capa) => {
+      const lista = candidatos[capa];
+      if (!lista) return;
+      const enLista = lista.filter((c) => c.explorado);
+      const fuera = lista.filter((c) => !c.explorado);
+      const noLlego = (sinMedir && sinMedir[capa]) || [];
+      host.appendChild(node("div", "k", titulo(capa)));
+      host.appendChild(tabla(
+        ["Candidato", "Distancia L2", "¿Queda la arista? M = 3"],
+        enLista.map((c) => ({
+          cells: [letra(c.producto), c.dist.toFixed(3), c.elegido ? "sí" : "está en la lista y no entra en los 3"],
+          cls: c.elegido ? "ok" : "on"
+        }))
+      ));
+      const medidos = fuera.length
+        ? "Al seguir aristas también se midieron y no cupieron en los " + corte + ": " + fuera.map((c) => letra(c.producto) + " " + c.dist.toFixed(3)).join(", ") + "."
+        : "Se midieron " + enLista.length + ". Todos cupieron en la lista de " + corte + ".";
+      const resto = noLlego.length
+        ? " No se midieron, la caminata no llegó: " + noLlego.map(letra).join(", ") + "."
+        : " En este grafo la caminata llegó a todos los nodos de la capa.";
+      host.appendChild(node("p", "muted", medidos + resto));
+    });
+  }
+  function renderMapaInsercion(f, host) {
+    const h = hnswListo();
+    if (f.nodo) {
+      host.appendChild(chips([
+        ["Paso " + f.paso + " / " + f.total, "", "on"],
+        [f.nodo.letra + " · producto " + f.nodo.producto, f.nodo.categoria + " · " + f.nodo.marca + " · $" + f.nodo.precio, ""],
+        ["Nivel asignado: " + f.nodo.nivel, f.nodo.nivel === 2 ? "capas 2, 1 y 0" : f.nodo.nivel === 1 ? "capas 1 y 0" : "solo capa 0", ""]
+      ]));
+    } else host.appendChild(chips([["Grafo final", "tres planos", "on"]]));
+    host.appendChild(mapaCapasHnsw({ presentes: f.presentes, aristas: f.aristas, destacado: f.nodo ? f.nodo.producto : null, descenso: f.descenso }));
+    host.appendChild(leyenda([
+      "Cada capa es un plano. El punteado corto y gris une al mismo producto entre planos.",
+      "El azul grueso es la arista por la que avanza dentro de esa capa.",
+      "El punteado azul es la bajada de ese nodo al plano de abajo, sin crear arista. El azul fino es la arista nueva de este paso."
+    ]));
+    tablasCandidatos(host, f.candidatos, f.sinMedir, h.letra, (capa) => "Capa " + capa + ": lista de a lo sumo " + h.efc + " para " + (f.nodo ? f.nodo.letra : ""), h.efc);
+    host.appendChild(relato(f.nota));
+  }
+  function renderMapaConsulta(f, host) {
+    const h = hnswListo();
+    host.appendChild(chips([["Consulta: " + f.consulta.letra + " · producto " + f.consulta.producto, f.consulta.categoria + " · " + f.consulta.marca + " · $" + f.consulta.precio, "on"]]));
+    host.appendChild(mapaCapasHnsw({
+      presentes: {
+        0: h.nodos.map((n) => n.producto),
+        1: h.nodos.filter((n) => n.nivel >= 1).map((n) => n.producto),
+        2: h.nodos.filter((n) => n.nivel >= 2).map((n) => n.producto)
+      },
+      aristas: h.aristas,
+      consulta: f.consulta.producto,
+      descenso: f.descenso
+    }));
+    host.appendChild(leyenda([
+      "Cada capa es un plano. El punteado corto y gris une al mismo producto entre planos.",
+      "El azul grueso es la arista por la que avanza dentro de esa capa.",
+      "El punteado azul es la bajada de ese nodo al plano de abajo, sin crear arista."
+    ]));
+    const enLista = f.candidatos.filter((c) => c.explorado);
+    const fuera = f.candidatos.filter((c) => !c.explorado);
+    host.appendChild(tabla(
+      ["Candidato", "Distancia L2", "¿En el resultado?"],
+      enLista.map((c) => ({
+        cells: [h.letra(c.producto), c.dist.toFixed(3), c.elegido ? "sí" : "está en la lista y no entra en los 3"],
+        cls: c.elegido ? "ok" : "on"
+      }))
+    ));
+    const medidos = fuera.length
+      ? "Al seguir aristas también se midieron y no cupieron en los " + h.efs + ": " + fuera.map((c) => h.letra(c.producto) + " " + c.dist.toFixed(3)).join(", ") + "."
+      : "Se midieron " + enLista.length + ". Todos cupieron en la lista de " + h.efs + ".";
+    const noLlego = f.sinMedir || [];
+    const resto = noLlego.length
+      ? " No se midieron, la caminata no llegó: " + noLlego.map(h.letra).join(", ") + "."
+      : " En este grafo la caminata llegó a todos los nodos de la capa.";
+    host.appendChild(node("p", "muted", medidos + resto));
+    host.appendChild(relato(f.nota));
+  }
   function renderIndice(f, host) {
+    if (ui.modo.indice === "insercion") { renderMapaInsercion(f, host); return; }
+    if (ui.modo.indice === "consulta") { renderMapaConsulta(f, host); return; }
     if (f.modo === "vector") {
       const ev = f.ficha;
       host.appendChild(node("p", "", "Segunda construcción. Cada ficha del catálogo se vuelve un vector de 14 casillas: precio, popularidad, categoría y marca. Aquí todavía no se buscan vecinos."));
@@ -1145,6 +1484,11 @@ if (typeof document === "undefined") {
       { titulo: "El peso decide el orden en la Rama C", texto: "Dos productos dejan 1 arista. Tres dejan 3. Si otra sesión repite el par, el peso suma 1. En el paso 17, candidatos_grafo ordena los vecinos por ese peso y el híbrido se queda con 4. Una arista de peso 2 sale antes que una de peso 1." }
     ];
     if (ui.paso === "indice" && ui.modo.indice === "vector") return [{ p: "Segunda construcción, dentro de construir_indice_productos. Cada ficha del catálogo se vuelve un vector de 14 casillas: precio, popularidad, categoría y marca. Aquí todavía no se buscan vecinos. Anterior y Siguiente recorren los productos del histórico." }];
+    if (ui.paso === "indice" && ui.modo.indice === "insercion") return [
+      { titulo: "La misma simulación del canvas Fases ABC Escalabilidad", texto: "Doce productos propios, 9001 a 9012, distintos de los diez del histórico. Cada capa es un plano y los productos parecidos quedan en la misma zona, para que un nodo muestre varias aristas a la vez. Cada inserción arranca en el nodo de llegada y sigue aristas ya existentes. La lista no pasa de ef_construction. Solo se compara contra lo ya insertado, nunca contra lo que llega después." },
+      { titulo: "El nivel lo sortea hnswlib", texto: "En el notebook el nivel no lo elige el vector ni el producto: lo sortea hnswlib al insertar, con nivel = piso(−ln(U) / ln(M)) y U uniforme entre 0 y 1. Con M = 16, cerca de 1 de cada 16 productos sube a la capa 1 y 1 de cada 256 a la capa 2. Aquí los niveles de A a L están fijados a mano para que el recorrido tenga nodos en las tres capas. Un nivel 2 vive en las capas 2, 1 y 0; un nivel 0 vive solo en la capa 0." }
+    ];
+    if (ui.paso === "indice" && ui.modo.indice === "consulta") return [{ p: "El grafo ya no cambia. La búsqueda entra por la capa más alta, baja al vecino más cercano capa por capa y, en la capa 0, la lista no pasa de ef = 4. Es la segunda parte de la misma simulación del canvas Fases ABC Escalabilidad." }];
     if (ui.paso === "indice") return [{ p: "Tercera parte: IndiceVectorial recibe los vectores ya armados. Esta tabla es lo que devuelve la consulta, HNSW o KNN exacto. El programa la usa en la fase C y se queda con el primero. hibrido no se queda con los cinco: toma el primero y completa con cuatro del grafo de sesión." }];
     if (ui.paso === "almacen") return [{ titulo: "disponible no viene en REES46", texto: "preparar_eventos calcula huella(42, usuario, producto) módulo 20. Si el resto es 0, la ficha nace no disponible. Si el resto es otro número, queda disponible. Una visita posterior del mismo producto no cambia ese valor: solo sube la popularidad. En estas 10 filas ningún resto es 0, así que las fichas del histórico quedan en sí." }];
     if (ui.paso === "lookup") return [{ titulo: "La búsqueda del catálogo no es un recorrido de todas las fichas", texto: "almacen.catalogo es un diccionario con clave product_id. Esa estructura ya es la tabla hash. actualizar corre sobre el mismo Almacén que construyó la Rama B, en este orden. 1. Catálogo: si el producto no está, nace la ficha y el precio entra al B+Tree; si está, precio y disponible se quedan. En los dos casos la popularidad suma 1. 2. Matriz dispersa: interacciones de usuario y producto suma 1. Solo existen los pares que ocurrieron. 3. LRU: si la ficha ya está entre las entradas, sale de la caché y se mueve al final (CACHE). Si no está, se lee del diccionario, se inserta y, con el cupo lleno, sale la más antigua (HASH). En esta miniatura el cupo es 3 para que se vea el desalojo. En el notebook el cupo es 256." }];
@@ -1195,7 +1539,34 @@ if (typeof document === "undefined") {
     const extra = $("extra"); extra.replaceChildren();
     const addModo = (clave, opciones) => { const row = node("div", "pills"); opciones.forEach((op) => { const b = node("button", ui.modo[clave] === op.id ? "on" : "", op.label); b.type = "button"; b.addEventListener("click", () => { ui.modo[clave] = op.id; ui.frame = inicial(); pintarLeccion(); pintarFrame(); pintarExtra(); pintarControles(); }); row.appendChild(b); }); extra.appendChild(row); };
     if (ui.paso === "orden") addModo("orden", [{ id: "merge", label: "Merge sort, comparación por comparación" }, { id: "k", label: "Mezcla de k vías, bloques de 4" }]);
-    if (ui.paso === "indice") addModo("indice", [{ id: "grafo", label: "1 · Grafo de sesión" }, { id: "vector", label: "2 · Vector" }, { id: "hnsw", label: "3 · Vecinos HNSW" }]);
+    if (ui.paso === "indice") {
+      addModo("indice", [
+        { id: "grafo", label: "1 · Grafo de sesión" },
+        { id: "vector", label: "2 · Vector" },
+        { id: "hnsw", label: "3 · Vecinos HNSW" },
+        { id: "insercion", label: "4 · Insertar y elegir vecinos" },
+        { id: "consulta", label: "5 · Consulta del grafo" }
+      ]);
+      if (ui.modo.indice === "insercion" || ui.modo.indice === "consulta") {
+        const h = hnswListo();
+        extra.appendChild(tabla(
+          ["Parámetro", "Qué decide", "Notebook (hnswlib)", "Esta miniatura"],
+          [
+            { cells: ["M", "Vecinos máximos por nodo y capa", "16", String(h.Mvec)] },
+            { cells: ["ef_construction", "Tope de la lista al insertar", "80", String(h.efc)] },
+            { cells: ["ef (set_ef)", "Tope de la lista al buscar", "40", String(h.efs)] },
+            { cells: ["Catálogo · dimensiones", "Tamaño del índice", "20.000 productos · 14 dim", h.nodos.length + " productos · 14 dim"] }
+          ]
+        ));
+        if (ui.modo.indice === "insercion") {
+          extra.appendChild(node("p", "muted", "Catálogo de esta miniatura, en orden de inserción. En el notebook el nivel lo sortea hnswlib. Aquí está fijado a mano para que se vean las tres capas."));
+          extra.appendChild(tabla(
+            ["Letra", "Producto", "Precio", "Categoría", "Marca", "Popularidad", "Nivel asignado"],
+            h.nodos.map((n) => ({ cells: [n.letra, n.producto, n.precio, n.categoria, n.marca, n.popularidad, n.nivel] }))
+          ));
+        }
+      }
+    }
     if (ui.paso === "cocompra" || ui.paso === "cocompraC") addModo("cocompra", [{ id: "mini", label: "Miniatura real" }, { id: "amp", label: "Ejemplo ampliado con pesos" }]);
     if (ui.paso === "reco") addModo("reco", [{ id: "1802", label: "1802 · ya está en B" }, { id: String(M.stream.find((e) => e.tipo === "view" || e.tipo === "cart").producto), label: "Producto de una vista o carrito del stream" }]);
     if (ui.paso === "trie") {
